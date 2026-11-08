@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3]
+[ext_resource type="Script" path="res://scripts/limbo.gd" id="1_limbo"]
+[ext_resource type="Texture2D" path="res://assets/world/limbo_master.png" id="2_art"]
+[ext_resource type="PackedScene" path="res://scenes/Dante.tscn" id="3_dante"]
+[ext_resource type="Script" path="res://scripts/particles.gd" id="4_particles"]
+[ext_resource type="Script" path="res://scripts/gate_visual.gd" id="5_gate"]
+
+[node name="Limbo" type="Node2D"]
+script = ExtResource("1_limbo")
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("2_art")
+centered = false
+z_index = -20
+texture_filter = 1
+
+[node name="World" type="Node2D" parent="."]
+y_sort_enabled = false
+
+[node name="Dante" parent="World" instance=ExtResource("3_dante")]
+position = Vector2(769, 834)
+combat_enabled = false
+
+[node name="Particles" type="Node2D" parent="."]
+z_index = 12
+script = ExtResource("4_particles")
+
+[node name="GateVisual" type="Node2D" parent="."]
+z_index = 2
+script = ExtResource("5_gate")
