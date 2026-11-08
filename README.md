@@ -72,17 +72,3 @@ assets/
   ui/                 # retratos circulares
   audio/              # ambiente sonoro
 ```
-
-## Siguiente paso para la versión de publicación
-
-Esta entrega es una **versión jugable del capítulo I**, no un juego de nueve círculos. Se priorizó que los activos de interfaz y personaje estuviesen separados del fondo y que el progreso funcione. Para llevarlo a calidad de publicación, conviene ejecutar pruebas en Godot en Windows, revisar la precisión de las colisiones en cada rincón, probar distintas resoluciones y completar animaciones avanzadas del personaje (muerte y combate real cuando llegue un círculo que lo requiera).
-
-**Importante:** en este entorno no hay un ejecutable de Godot para abrir el proyecto y comprobar la ejecución. Se han efectuado comprobaciones de integridad del paquete, presencia de recursos, transparencia de los sprites y recorridos previstos. Eso **no sustituye** una prueba desde el editor; si Godot da un error concreto, compárteme el texto y lo corregimos sobre estos archivos.
-
-## Dirección artística
-
-- Referencia: documento de concepto *Inferno: El Descenso*, primera zona «Paganos virtuosos; sin combate, exploración y puzzles tranquilos».
-- Atmósfera: grabado en gris frío, jardines y ruinas simétricas, estatuas, estanques, almas melancólicas y efectos sobrios.
-- El personaje conserva una capa roja oscura como rasgo identificador de Dante, mientras las **reglas cromáticas de cada círculo** se administran de forma independiente.
-- La ilustración del escenario es una base artística integrada en un Sprite2D, no un TileMap editable losa por losa. Los marcadores, colisiones, UI, jugador y sistemas sí son editables como escenas/scripts. Esta separación permite reemplazar el arte del suelo por un TileMap más adelante sin reprogramar las mecánicas.
-"# Inferno_Videojuego2D" 

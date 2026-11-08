@@ -6,3 +6,5 @@ res://scripts/hud.gd
 res://scripts/main_menu.gd
 res://scripts/minimap.gd
 res://scripts/particles.gd
+res://scenes/MenuPrincipal.tscn
+res://README.md
