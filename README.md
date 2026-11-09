@@ -1,74 +1,73 @@
-# INFERNO: EL DESCENSO — CAPÍTULO I: LIMBO
+# INFERNO: EL DESCENSO — Limbo + Lujuria (Godot 4)
 
-Proyecto de Godot 4.3+ para Windows. Primer círculo **jugable y autocontenido** (sin prometer contenido de los siguientes niveles).
+Este proyecto une **los dos ZIP proporcionados** en un solo `project.godot`. Conserva el Limbo como base visual y reutiliza en Lujuria **su interfaz, sus retratos y su sistema de diálogo con decisiones**. Los círculos aparecen uno tras otro sin cerrar el juego. El arte y las mecánicas originales se mantienen, salvo los cambios necesarios para unificar capítulos, controles y guardado.
 
-## Cómo abrirlo
+## Abrir y jugar
 
-1. Descomprimir `INFERNO_LIMBO_REFINADO_GODOT4.zip`.
-2. Abrir Godot 4.3 o superior (preferiblemente Godot 4.4 o 4.5).
-3. `Importar` → elegir la carpeta del juego → abrir `project.godot`.
-4. Esperar a que el editor importe los PNG/WAV. Pulsar **F5** para comenzar desde el menú.
-5. Si no quieres perder el progreso, usa **Continuar partida**: el guardado se guarda en `user://inferno_save_v2.json`.
+1. Descomprime `INFERNO_EL_DESCENSO_LIMBO_LUJURIA_UNIFICADO.zip` en una carpeta nueva, **sin mezclarlo con tus dos proyectos anteriores**.
+2. En **Godot 4.3 o superior**, selecciona **Importar**, elige el `project.godot` de esta carpeta y espera la importación de imágenes/audio.
+3. Pulsa **F5**. El menú principal tiene **Comenzar un nuevo viaje** y **Continuar la partida**.
+4. En el **Limbo**, resuelve Memoria → Saber → Compasión, escucha a Elio y Livia, y abre la puerta norte.
+5. Aparece una pantalla de transición. Pulsa **Continuar a Lujuria** y Dante llegará al segundo círculo.
+6. En **Lujuria**, activa Memoria → Aliento → Juicio, escucha a Paolo y Francesca, derrota a los demonios y a Minos, y abre la puerta norte.
+7. Verás la pantalla de **Lujuria completada**. Gula no se ha creado todavía.
 
-## Controles
+### Controles
 
-| Tecla | Acción |
-|---|---|
-| WASD o flechas | Mover a Dante (ocho direcciones) |
-| ESPACIO | Esquiva corta con enfriamiento |
-| E | Interactuar con almas, piedras y santuarios |
-| Q | Solicitar una pista contextual de Virgilio |
-| 1 / 2, o clic | Elegir una respuesta en los diálogos |
-| ESC | Pausa y reanudación |
-| J / K | Preparados para otros capítulos; **desactivados en el Limbo** |
+| Teclas | Acción | Limbo | Lujuria |
+|---|---|---|---|
+| WASD / flechas | Movimiento en ocho direcciones | Sí | Sí |
+| ESPACIO | Esquiva | Sí | Sí |
+| E | Interacción / hablar | Sí | Sí |
+| Q | Pista de Virgilio | Sí | Sí |
+| 1 / 2 o clic | Elegir diálogo | Sí | Sí |
+| J | Ataque cercano | No, deliberadamente | Sí |
+| K | Verso de luz | No, deliberadamente | Sí |
+| ESC | Pausar / reanudar | Sí | Sí |
 
-## Recorrido completo del primer círculo
+## Unificación realizada
 
-**1. Inicio:** dialogar con Virgilio. Los pasos se guardan automáticamente tras cada decisión o evento relevante.
+- **Interfaz:** la escena `scenes/HUD.tscn` y el script `scripts/hud.gd` provienen de Limbo. Los retratos de **Virgilio**, **alma**, y el estilo pergamino se reutilizan en ambos capítulos; el HUD cambia de título, objetivos y minimapa automáticamente.
+- **Dante:** Lujuria usa el mismo archivo de sprites de Limbo (`assets/dante/`), con **celdas 80×96**, la **misma escala 1.24**, desplazamiento visual `(0,-58)` y zoom de cámara **0.96**. Su script separado conserva las mecánicas de combate, viento y daño. Se mantienen dos scripts de controlador para no alterar el Limbo sin combate.
+- **Progreso:** `scripts/game_state.gd` es un autoload llamado `Game`. Usa **un solo archivo** `user://inferno_save_v2.json`; Redención y Rigor se acumulan a través de los círculos. Los progresos del Limbo y Lujuria tienen claves separadas para evitar sobreescrituras.
+- **Transición:** el final del Limbo lleva a `Transicion.tscn` y después a `Lujuria.tscn`. Volver al menú y elegir **Continuar** lleva al capítulo actual.
+- **Lujuria:** se preservaron el mapa, el viento, los sellos, las almas, las oleadas enemigas, Minos y los proyectiles. Sus recursos están en `assets/lujuria/` y sus scripts empiezan con `lujuria_` para evitar conflictos.
+- **Corrección aplicada:** en `scripts/lujuria_enemigo.gd` se tipó explícitamente `wind` como `Vector2` para corregir el error de inferencia comunicado anteriormente.
 
-**2. Descifrar la inscripción:** explorar la explanada del sur, junto al pavimento circular; leerla con E. La inscripción da el orden del rompecabezas.
+## Archivos importantes
 
-**3. Puzzle:** activar en este orden **Memoria (oeste) → Saber (este) → Compasión (centro, frente a la estatua)**. El orden incorrecto muestra una pista, sin bloquear para siempre el nivel.
-
-**4. Decisiones morales:** hablar con Elio (al oeste, junto al estanque) y Livia (al noreste). Una elección suma **Redención** y la otra **Rigor**; no hay una respuesta «correcta» forzada. Se guardan por separado.
-
-**5. Descenso:** dirigirse a la puerta del norte cuando los tres santuarios y ambas almas estén completados. Aparece la pantalla **Capítulo I completado**. Lujuria queda expresamente como contenido futuro; no hay una escena falsa.
-
-## Qué está implementado
-
-- Mapa ilustrado cenital con la composición que aprobaste, ambientación en escala de grises y acento Limbo `#9AA0A6`.
-- Dante rediseñado a partir de la hoja de concepto: cinco hojas de animaciones independientes y transparentes, cuatro orientaciones (`idle`, `walk`, `dash`, `interact`, `ready`). Son **96 fotogramas** en total: `(4 + 8 + 4 + 4 + 4) × 4 = 96`.
-- Movimiento en ocho direcciones y animaciones en cuatro orientaciones. Colisión física con límites, estanques, estatuas y ruinas principales.
-- Interacciones por proximidad y marcadores luminosos, escaneo de objetivos, pistas dinámicas, puzzle ordenado y respuestas morales.
-- HUD dinámico y no impreso en el fondo: retrato de Dante, tres corazones, barras Redención/Rigor, objetivos, minimapa con posición, esquiva, diálogo, notificaciones y pausa.
-- Menú principal, continuar partida, guardado JSON local, capítulos reutilizables, cierre del Limbo y sonido ambiente.
-- La paleta de colores de los diez niveles está centralizada en `scripts/game_state.gd` (`CIRCLE_TINTS`). **No se aplican los pecados de los otros círculos al Limbo**.
-
-## Estructura
-
-```
+```text
 project.godot
 scenes/
-  MenuPrincipal.tscn  # menú
-  Limbo.tscn          # mundo, colisiones y eventos
-  Dante.tscn          # CharacterBody2D reutilizable
-  HUD.tscn            # interfaz dinámica
-  FinLimbo.tscn       # fin real del capítulo
+  MenuPrincipal.tscn       # menú general
+  Limbo.tscn               # capítulo I
+  Transicion.tscn          # capítulo I → II
+  Lujuria.tscn             # capítulo II
+  FinLujuria.tscn          # cierre del contenido actual
+  Dante.tscn               # personaje del Limbo
+  DanteLujuria.tscn        # mismo aspecto/escala, combate activo
+  HUD.tscn                 # interfaz única reutilizada
+  LujuriaEnemigo.tscn      # IA enemiga reutilizable
 scripts/
-  game_state.gd       # guardado, puntuaciones y paleta por círculo
-  dante.gd            # movimiento, evasión, animaciones y señales
-  limbo.gd            # diseño del nivel, puzzle, almas y puerta
-  hud.gd              # cuadros y medidores
-  minimap.gd          # plano que sigue la posición de Dante
-  hotspot.gd          # señalización contextual
-  gate_visual.gd      # puerta desbloqueada
-  particles.gd        # motas ambientales
-  shadow.gd           # sombra bajo los pies
-  main_menu.gd
-  fin_limbo.gd
+  game_state.gd            # progreso moral de todo el viaje
+  hud.gd                   # interfaz, retratos, dialogo de almas
+  limbo.gd                 # lógica Limbo
+  lujuria.gd               # lógica Lujuria y encuentros
+  lujuria_enemigo.gd       # IA, Minos y efectos de viento
+  lujuria_dante.gd         # movimiento/combate en Lujuria
 assets/
-  dante/              # 5 spritesheets RGBA, 80 × 96 px por fotograma
-  world/              # ilustración del jardín, sin retrato de jugador fijo
-  ui/                 # retratos circulares
-  audio/              # ambiente sonoro
+  dante/                  # arte idéntico para ambos círculos
+  ui/                     # retratos y estilo de Limbo
+  world/                  # mapa original del Limbo
+  lujuria/                # arte, audio, NPC y enemigos del segundo círculo
 ```
+
+## Guardado y compatibilidad
+
+El proyecto nuevo guarda el progreso en una carpeta de usuario correspondiente a su propio nombre. Los guardados de las **dos aplicaciones originales**, que tienen nombres de proyecto diferentes, **no se importan automáticamente**. Para comprobar la unión, inicia una **partida nueva** en este proyecto; no sobrescribe los ZIP originales.
+
+Si quieres probar Lujuria directamente sin completar el Limbo, abre `scenes/Lujuria.tscn` en el editor y ejecútala con **F6**; esto es solo un atajo para desarrollo.
+
+## Estado de calidad
+
+Se realizó una validación **estática**: estructura de archivos, referencias de recursos, tamaños de sprites, transición, claves de guardado, corrección `Vector2` y una simulación de accesibilidad de los siete puntos interactivos de Lujuria. **No fue posible iniciar el motor Godot en este entorno**, por lo que las pruebas reales de scripts, audio, colisiones, rendimiento y flujo de combate deben completarse en el editor. Consulta `PRUEBAS.md` antes de considerar la versión libre de errores.

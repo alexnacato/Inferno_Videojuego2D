@@ -151,15 +151,32 @@ func _talk_to_soul(id: String) -> void:
         _toast("Esta alma ya conoce tu decisión.")
         return
     if id == "alma_elio":
-        _talk(id, "ELIO · ALMA DEL LIMBO", "En vida busqué la verdad y enseñé a otros a pensar. Aun así, nadie pronuncia mi nombre. ¿Recordarás lo bueno que dejé, o me juzgarás por aquello que nunca conocí?", ["Reconocer su virtud · Redención", "Juzgar su ignorancia · Rigor"])
+        _talk(id, "ELIO · ALMA DEL LIMBO",
+            "Fui maestro en Florencia: enseñé a pensar a quienes hoy son jueces y poetas, y ninguno repite mi nombre. Junto a mí espera una piedra sin inscribir, preparada para mi memoria. Dime, peregrino: ¿qué hago con ella?",
+            ["Inscribir su nombre y contar su historia · Redención",
+             "Dejar la piedra en blanco: la obra vale más que la fama · Rigor"])
     else:
-        _talk(id, "LIVIA · ALMA DEL LIMBO", "Cuidé de quienes estaban solos. Ahora mi voz se pierde entre las ruinas. ¿Me escucharás sin esperar recompensa, o condenarás mi silencio?", ["Escuchar y consolar · Redención", "Imponer tu juicio · Rigor"])
+        _talk(id, "LIVIA · ALMA DEL LIMBO",
+            "Cuidé huérfanos durante la peste y enterré a más de los que salvé. Nadie reza por ellos ni por mí, y yo sé sus nombres: los recuerdo todos. ¿Valió la pena amar a los que no pudo salvar del todo?",
+            ["Nombrar a sus huérfanos: su amor no se perdió · Redención",
+             "El consuelo sin esperanza no borra el dolor · Rigor"])
 
 func _handle_door() -> void:
     if not Game.gate_unlocked():
         _talk("blocked", "UMBRAL DEL DESCENSO", "La puerta permanece sellada. Debes despertar los tres santuarios y escuchar a las dos almas. Aquí ninguna espada abrirá el camino.", ["Volver al jardín"])
         return
-    _talk("finish", "EL UMBRAL RESPONDE", "El jardín se inclina ante tus decisiones. Al otro lado comienza el círculo de la Lujuria. Virgilio te aguarda para seguir descendiendo.", ["Terminar el capítulo I"])
+    var red: int = int(Game.progress["redencion"])
+    var rig: int = int(Game.progress["rigor"])
+    var verdict: String
+    if red > rig:
+        verdict = "tu misericordia pesa más que tu severidad, y el jardín florece con ella."
+    elif rig > red:
+        verdict = "tu severidad pesa más que tu misericordia, y el jardín se aquieta ante ella."
+    else:
+        verdict = "tu balanza sigue pareja: ni piedad firme ni juicio firme."
+    _talk("finish", "EL UMBRAL RESPONDE",
+        "Has decidido sobre dos vidas y el jardín escuchó todo: %s Así recordarán las almas tu paso. Al otro lado comienza la Lujuria, donde nuevas voces exigirán tu juicio." % verdict,
+        ["Descender a Lujuria"])
 
 func _talk(context: String, speaker: String, message: String, choices: Array) -> void:
     dialog_context = context
@@ -177,12 +194,23 @@ func _on_dialogue_selected(index: int) -> void:
             _play_sound("decision", -10.0)
             _save_at_position()
             _refresh()
-            _toast("Tu decisión ha quedado escrita en el viaje.", 4.0)
+            if chosen_id == "alma_elio":
+                _talk("reply_elio", "ELIO · ALMA DEL LIMBO",
+                    "Mi nombre vuelve a sonar en boca de los vivos. Sabré que pensé para alguien, y no en vano. Lleva mi recuerdo contigo al descenso." if index == 0
+                    else "En blanco… Quizá tengas razón: la obra importa más que la firma. Aprendo a quedarme quieto. Tu veredicto serán siglos de silencio.",
+                    ["Seguir tu camino"])
+            else:
+                _talk("reply_livia", "LIVIA · ALMA DEL LIMBO",
+                    "Los nombres… sí, aún los recuerdo todos. Con que uno viva, mi cuidado seguirá vivo. Gracias por mirarme cuando todos miran al frente." if index == 0
+                    else "Duelen tus palabras, pero no mienten. Aprendo a mirar lo que no hice, no solo lo que di. Que tu juicio me haga más honesta.",
+                    ["Seguir tu camino"])
+            return
         "finish":
             Game.progress["limbo_completed"] = true
             _play_sound("umbral", -8.0)
             _save_at_position()
-            get_tree().change_scene_to_file("res://scenes/FinLimbo.tscn")
+            Game.enter_lujuria()
+            get_tree().change_scene_to_file("res://scenes/Transicion.tscn")
             return
     dialog_context = ""
     player.input_locked = false

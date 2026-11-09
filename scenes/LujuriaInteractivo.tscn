@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/lujuria_interactivo.gd" id="1_inter"]
+
+[node name="Interactivo" type="Node2D"]
+script = ExtResource("1_inter")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -45)
