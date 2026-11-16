@@ -223,7 +223,7 @@ func _activate_seal(marker: Variant) -> void:
         return
     seals.append(uid)
     marker.set_done(true)
-    checkpoint = Vector2(722, 685) if seals.size() == 1 else Vector2(544, 390) if seals.size() == 3 else checkpoint
+    checkpoint = hero.global_position
     _play_fx()
     _save_state()
     _refresh_hud()
@@ -358,7 +358,7 @@ func _spawn_enemy(kind: String, uid: String, spawn_at: Vector2):
     enemy.world = self
     enemy.hero = hero
     enemy.active = true
-    enemy.position = spawn_at
+    enemy.position = walk_geometry.nearest_walkable(spawn_at, float(enemy.STATS[kind]["radius"]))
     enemy.died.connect(_on_enemy_died)
     if kind == "minos":
         enemy.hp_changed.connect(func(value: int, maximum: int): hud.set_boss_health(value, maximum))
@@ -444,37 +444,10 @@ func wind_at(p: Vector2) -> Vector2:
             wind += away.normalized() * 165.0 * pulse_left
     return wind
 
+var walk_geometry = preload("res://scripts/lujuria_ground.gd").new()
+
 func can_walk(p: Vector2, radius: float = 8.0) -> bool:
-    # Hand-authored traversal geometry built over the user's illustrated 2D map.
-    # Tested with a graph reachability scan; excludes abyss, walls, and the center statue.
-    for pt in [p, p + Vector2(radius, 0), p + Vector2(-radius, 0), p + Vector2(0, radius), p + Vector2(0, -radius)]:
-        if not _is_ground(pt):
-            return false
-    return true
+    return walk_geometry.can_walk(p, radius)
 
-func _in_ellipse(p: Vector2, c: Vector2, rx: float, ry: float) -> bool:
-    return pow((p.x - c.x) / rx, 2.0) + pow((p.y - c.y) / ry, 2.0) <= 1.0
-
-func _is_ground(p: Vector2) -> bool:
-    if p.x < 104.0 or p.x > 1342.0 or p.y < 155.0 or p.y > 1070.0:
-        return false
-    var ground := false
-    # Entrance causeway and lower ceremonial courtyard.
-    ground = ground or Rect2(634, 900, 188, 176).has_point(p)
-    ground = ground or _in_ellipse(p, Vector2(720, 833), 339.0, 164.0)
-    ground = ground or Rect2(609, 620, 230, 157).has_point(p)
-    # Circumferential plaza around the lovers' statue.
-    ground = ground or _in_ellipse(p, Vector2(724, 531), 300.0, 198.0)
-    ground = ground or Rect2(140, 440, 1170, 113).has_point(p)
-    ground = ground or Rect2(260, 395, 275, 153).has_point(p)
-    ground = ground or Rect2(910, 395, 280, 153).has_point(p)
-    # Upper platform with Minos and the doorway.
-    ground = ground or Rect2(454, 258, 540, 165).has_point(p)
-    ground = ground or Rect2(560, 177, 325, 155).has_point(p)
-    ground = ground or Rect2(580, 389, 291, 57).has_point(p)
-    # Monumental statue is solid and not traversable.
-    if _in_ellipse(p, Vector2(727, 503), 125.0, 116.0):
-        return false
-    return ground
-
-
+func move_on_ground(origin: Vector2, displacement: Vector2, radius: float) -> Vector2:
+    return walk_geometry.move_on_ground(origin, displacement, radius)

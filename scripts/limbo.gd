@@ -64,17 +64,47 @@ func _process(_delta: float) -> void:
             marker.set("hovered", str(key) == id)
 
 func _build_collision() -> void:
-    # Límites invisibles, alineados con los bordes del jardín.
+    # Colisiones en coordenadas de la imagen original (1540 x 980).
+    # Las escaleras centrales quedan abiertas entre los dos pilares.
     for rectangle in [
         Rect2(-60, -60, 1660, 65), Rect2(-60, 967, 1660, 70),
         Rect2(-60, -60, 74, 1120), Rect2(1526, -60, 76, 1120),
-        Rect2(0, 0, 692, 174), Rect2(842, 0, 698, 174),
-        Rect2(700, 0, 140, 143),
-        Rect2(129, 414, 350, 131), Rect2(1062, 414, 354, 131),
-        Rect2(609, 317, 323, 277),
-        Rect2(224, 187, 116, 150), Rect2(1204, 187, 116, 150)
+        Rect2(0, 0, 628, 390), Rect2(912, 0, 628, 380),
+        Rect2(628, 0, 284, 219),
+        Rect2(628, 219, 45, 171), Rect2(866, 219, 46, 171),
+        # Muros bajos y pilares junto a la entrada inferior.
+        Rect2(0, 825, 560, 60), Rect2(980, 825, 560, 60),
+        Rect2(510, 824, 78, 142), Rect2(595, 774, 57, 192),
+        Rect2(885, 774, 57, 192), Rect2(955, 824, 55, 142)
     ]:
         _solid(rectangle)
+    # Contornos de fuentes, incluidos sus bordes y jardineras.
+    _solid_polygon(PackedVector2Array([
+        Vector2(72, 485), Vector2(159, 447), Vector2(432, 447),
+        Vector2(501, 487), Vector2(508, 641), Vector2(454, 686),
+        Vector2(142, 686), Vector2(72, 646)
+    ]))
+    _solid_polygon(PackedVector2Array([
+        Vector2(1032, 485), Vector2(1102, 447), Vector2(1378, 447),
+        Vector2(1462, 487), Vector2(1462, 646), Vector2(1394, 686),
+        Vector2(1080, 686), Vector2(1032, 641)
+    ]))
+    # Pedestal central: el volumen se apoya en el suelo, no en la cabeza.
+    var pedestal := PackedVector2Array()
+    for i in range(32):
+        var angle := TAU * float(i) / 32.0
+        pedestal.append(Vector2(770, 584) + Vector2(cos(angle) * 180.0, sin(angle) * 70.0))
+    _solid_polygon(pedestal)
+
+func _solid_polygon(points: PackedVector2Array) -> void:
+    var body := StaticBody2D.new()
+    body.name = "ContornoDecoracion"
+    body.collision_layer = 1
+    body.collision_mask = 0
+    world.add_child(body)
+    var shape := CollisionPolygon2D.new()
+    shape.polygon = points
+    body.add_child(shape)
 
 func _solid(rectangle: Rect2) -> void:
     var obj: StaticBody2D = StaticBody2D.new()

@@ -80,13 +80,8 @@ func _physics_process(delta: float) -> void:
 			motion = -delta_to_hero.normalized() * 57.0
 	var wind: Vector2 = world.wind_at(global_position) * (0.27 if archetype == "minos" else 0.50)
 	velocity = motion + wind + knockback
-	var old := global_position
-	var target := old + velocity * delta
 	var radius: float = float(stats["radius"])
-	if world.can_walk(Vector2(target.x, old.y), radius):
-		global_position.x = target.x
-	if world.can_walk(Vector2(global_position.x, target.y), radius):
-		global_position.y = target.y
+	global_position = world.move_on_ground(global_position, velocity * delta, radius)
 	if motion.length_squared() > 1.0:
 		move_dir = motion.normalized()
 	if stagger > 0.0:

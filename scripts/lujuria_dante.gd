@@ -70,18 +70,12 @@ func _physics_process(delta: float) -> void:
     if is_instance_valid(world):
         wind = world.wind_at(global_position)
     velocity = facing * dash_speed if dash_time > 0.0 else axis * move_speed + wind
-    # World walk mask prevents falling into painted chasms while allowing axis sliding.
-    var start := global_position
-    var target := start + velocity * delta
-    if not is_instance_valid(world):
-        global_position = target
-    else:
-        if world.can_walk(Vector2(target.x, start.y), 12.0):
-            global_position.x = target.x
-        if world.can_walk(Vector2(global_position.x, target.y), 12.0):
-            global_position.y = target.y
-        if world.can_walk(global_position, 12.0):
+    if is_instance_valid(world):
+        global_position = world.move_on_ground(global_position, velocity * delta, $CollisionShape2D.shape.radius)
+        if world.can_walk(global_position, $CollisionShape2D.shape.radius):
             last_safe_position = global_position
+    else:
+        move_and_slide()
     if dash_time > 0.0:
         _play("dash")
     elif pose_time > 0.0:
