@@ -29,6 +29,7 @@ var pause_open: bool = false
 var dash_bar: ProgressBar
 var chapter_title: Label
 var chapter_subtitle: Label
+var title_frame: PanelContainer
 var map_title: Label
 var control_text: Label
 var boss_frame: PanelContainer
@@ -131,7 +132,7 @@ func _build() -> void:
     rig_row.add_child(rig_bar)
     vitals.add_child(rig_row)
 
-    var title_frame: PanelContainer = _panel(root, Vector2(518, 17), Vector2(246, 64), true)
+    title_frame = _panel(root, Vector2(518, 17), Vector2(246, 64), true)
     var title_stack: VBoxContainer = VBoxContainer.new()
     title_stack.add_theme_constant_override("separation", 0)
     title_frame.add_child(title_stack)
@@ -169,7 +170,7 @@ func _build() -> void:
     map_v.add_child(minimap)
 
     var control_panel: PanelContainer = _panel(root, Vector2(16, 661), Vector2(564, 47))
-    control_text = _label("WASD  MOVER    ESPACIO  ESQUIVA    E  INTERACTUAR    Q  PISTA    ESC  PAUSA", 13, Color("#d9dfe0"))
+    control_text = _label("WASD MOVER   ESPACIO ESQUIVA / SALTO   E USAR   Q PISTA   ESC PAUSA", 12, Color("#d9dfe0"))
     control_panel.add_child(control_text)
 
     var dash_frame: PanelContainer = _panel(root, Vector2(1083, 660), Vector2(177, 49))
@@ -181,17 +182,19 @@ func _build() -> void:
     dash_bar.value = 1.0
     dash_v.add_child(dash_bar)
 
-    boss_frame = _panel(root, Vector2(477, 90), Vector2(328, 72))
+    boss_frame = _panel(root, Vector2(478, 16), Vector2(300, 56))
     var boss_v: VBoxContainer = VBoxContainer.new()
-    boss_v.add_theme_constant_override("separation", 5)
+    boss_v.add_theme_constant_override("separation", 3)
     boss_frame.add_child(boss_v)
-    boss_text = _label("MINOS · GUARDIÁN DEL CÍRCULO II", 14, Color("#ebe1ee"))
+    boss_text = _label("MINOS", 15, Color("#ebe1ee"))
     boss_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    boss_text.clip_text = true
     boss_v.add_child(boss_text)
     boss_bar = _progress()
     boss_bar.max_value = 38.0
     boss_bar.value = 38.0
-    boss_bar.custom_minimum_size = Vector2(294, 14)
+    boss_bar.custom_minimum_size = Vector2(260, 10)
+    boss_bar.add_theme_stylebox_override("fill", _style(Color("#a56b9f"), Color("#d8adcf"), 2, 0))
     boss_v.add_child(boss_bar)
     boss_frame.visible = false
 
@@ -292,7 +295,17 @@ func show_dialogue(speaker: String, body: String, options: Array) -> void:
     dialogue_overlay.visible = true
     nearby_frame.visible = false
     dialogue_title.text = speaker
-    if speaker.contains("VIRGILIO"):
+    if current_circle == "lujuria" and speaker.contains("VIRGILIO"):
+        dialogue_portrait.texture = _character_portrait("virgilio", Rect2(255, 0, 520, 520))
+    elif current_circle == "lujuria" and speaker.contains("PAOLO"):
+        dialogue_portrait.texture = _character_portrait("paolo", Rect2(260, 0, 520, 520))
+    elif current_circle == "lujuria" and speaker.contains("FRANCESCA"):
+        dialogue_portrait.texture = _character_portrait("francesca", Rect2(260, 0, 520, 520))
+    elif current_circle == "gula" and speaker.contains("DARIA"):
+        dialogue_portrait.texture = _gula_portrait("daria")
+    elif current_circle == "gula" and speaker.contains("OLMO"):
+        dialogue_portrait.texture = _gula_portrait("olmo")
+    elif speaker.contains("VIRGILIO"):
         dialogue_portrait.texture = load("res://assets/ui/retrato_virgilio.png")
     elif speaker.contains("ALMA") or speaker.contains("PAOLO") or speaker.contains("FRANCESCA"):
         dialogue_portrait.texture = load("res://assets/ui/retrato_alma.png")
@@ -315,6 +328,19 @@ func show_dialogue(speaker: String, body: String, options: Array) -> void:
         if index == 0:
             b.grab_focus()
         index += 1
+
+func _character_portrait(character: String, region: Rect2) -> Texture2D:
+    var source: Texture2D = load("res://assets/lujuria/npcs/" + character + "_statue.png")
+    var portrait: AtlasTexture = AtlasTexture.new()
+    portrait.atlas = source
+    portrait.region = region
+    return portrait
+
+func _gula_portrait(character: String) -> Texture2D:
+    var portrait := AtlasTexture.new()
+    portrait.atlas = load("res://assets/gula/npcs/" + character + ".png")
+    portrait.region = Rect2(140, 0, 744, 800)
+    return portrait
 
 func _select(index: int) -> void:
     if not dialogue_open:
@@ -355,18 +381,27 @@ func configure_chapter(circle: String, player_node: Node2D) -> void:
     current_circle = circle
     set_player(player_node)
     minimap.mode = circle
-    if circle == "lujuria":
-        chapter_title.text = "I N F E R N O  ·  I I"
-        chapter_subtitle.text = "L U J U R I A"
-        map_title.text = "✧  PLANO DE LUJURIA"
+    if circle in ["lujuria", "gula", "violencia", "traicion"]:
+        title_frame.position = Vector2(825, 17)
+        title_frame.custom_minimum_size = Vector2(180, 46)
+        title_frame.size = Vector2(180, 46)
+        chapter_title.visible = false
+        chapter_subtitle.text = "II · LUJURIA" if circle == "lujuria" else "III · GULA" if circle == "gula" else "VII · VIOLENCIA" if circle == "violencia" else "IX · TRAICIÓN"
+        chapter_subtitle.add_theme_font_size_override("font_size", 17)
+        map_title.text = "✧  PLANO DE LUJURIA" if circle == "lujuria" else "✧  PLANO DE GULA" if circle == "gula" else "✧  PLANO DE VIOLENCIA" if circle == "violencia" else "✧  PLANO DE COCITO"
         control_text.text = "WASD MOVER   ESPACIO ESQUIVA   J GOLPE   K VERSO   E HABLAR   Q PISTA   ESC PAUSA"
         red_bar.max_value = 9.0
         rig_bar.max_value = 9.0
     else:
+        title_frame.position = Vector2(518, 17)
+        title_frame.custom_minimum_size = Vector2(246, 64)
+        title_frame.size = Vector2(246, 64)
+        chapter_title.visible = true
         chapter_title.text = "I N F E R N O  ·  I"
         chapter_subtitle.text = "L I M B O"
+        chapter_subtitle.add_theme_font_size_override("font_size", 24)
         map_title.text = "✧  PLANO DEL LIMBO"
-        control_text.text = "WASD  MOVER    ESPACIO  ESQUIVA    E  INTERACTUAR    Q  PISTA    ESC  PAUSA"
+        control_text.text = "WASD MOVER   ESPACIO ESQUIVA / SALTO   E USAR   Q PISTA   ESC PAUSA"
         red_bar.max_value = 2.0
         rig_bar.max_value = 2.0
     minimap.queue_redraw()
@@ -386,9 +421,46 @@ func set_lujuria_state(data: Dictionary, seals_count: int, souls: int, boss_down
     minimap.soul_count = souls
     minimap.door_open = boss_down
 
+func set_gula_state(data: Dictionary, offerings_count: int, souls: int, boss_down: bool) -> void:
+    red_bar.max_value = maxf(9.0, float(data.get("redencion", 0)))
+    rig_bar.max_value = maxf(9.0, float(data.get("rigor", 0)))
+    red_bar.value = int(data.get("redencion", 0))
+    rig_bar.value = int(data.get("rigor", 0))
+    shrine_label.text = "◆  Ofrendas hundidas: %d / 2" % offerings_count
+    soul_label.text = "◆  Almas escuchadas: %d / 2" % souls
+    gate_label.text = "✦  Cerbero vencido · salida abierta" if boss_down else "○  Cerbero protege el umbral"
+    minimap.altar_step = offerings_count
+    minimap.soul_count = souls
+    minimap.door_open = boss_down
+
+func set_traicion_state(data: Dictionary, seals_count: int, souls: int, boss_down: bool) -> void:
+    red_bar.max_value = maxf(9.0, float(data.get("redencion", 0)))
+    rig_bar.max_value = maxf(9.0, float(data.get("rigor", 0)))
+    red_bar.value = int(data.get("redencion", 0))
+    rig_bar.value = int(data.get("rigor", 0))
+    shrine_label.text = "◆  Juramentos rotos: %d / 2" % seals_count
+    soul_label.text = "◆  Almas escuchadas: %d / 2" % souls
+    gate_label.text = "✦  Lucifer vencido · salida abierta" if boss_down else "○  Lucifer guarda el centro"
+    minimap.altar_step = seals_count
+    minimap.soul_count = souls
+    minimap.door_open = boss_down
+
+func set_violencia_state(data: Dictionary, seals_count: int, souls: int, boss_down: bool) -> void:
+    red_bar.max_value = maxf(9.0, float(data.get("redencion", 0)))
+    rig_bar.max_value = maxf(9.0, float(data.get("rigor", 0)))
+    red_bar.value = int(data.get("redencion", 0))
+    rig_bar.value = int(data.get("rigor", 0))
+    shrine_label.text = "◆  Votos encendidos: %d / 3" % seals_count
+    soul_label.text = "◆  Almas escuchadas: %d / 2" % souls
+    gate_label.text = "✦  Minotauro vencido · salida abierta" if boss_down else "◌  Minotauro guarda el umbral"
+    minimap.altar_step = seals_count
+    minimap.soul_count = souls
+    minimap.door_open = boss_down
+
 func set_boss_health(current: int, maximum: int) -> void:
     boss_frame.visible = current > 0
-    toast_frame.position = Vector2(420, 174) if current > 0 else Vector2(420, 99)
+    if current_circle == "violencia":
+        toast_frame.position = Vector2(420, 570) if current > 0 else Vector2(420, 99)
     boss_bar.max_value = maxf(1.0, float(maximum))
     boss_bar.value = maxf(0.0, float(current))
 

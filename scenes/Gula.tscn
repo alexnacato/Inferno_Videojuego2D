@@ -1,0 +1,145 @@
+[gd_scene load_steps=9 format=3]
+[ext_resource type="Script" path="res://scripts/gula.gd" id="1_world"]
+[ext_resource type="Texture2D" path="res://assets/gula/world/gula_base.png" id="2_map"]
+[ext_resource type="PackedScene" path="res://scenes/DanteLujuria.tscn" id="3_dante"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/gula_area.gd" id="5_area"]
+[ext_resource type="Script" path="res://scripts/gula_marker.gd" id="6_marker"]
+[ext_resource type="Texture2D" path="res://assets/gula/npcs/daria.png" id="7_daria"]
+[ext_resource type="Texture2D" path="res://assets/gula/npcs/olmo.png" id="8_olmo"]
+
+[node name="Gula" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="MapaPintado" type="Sprite2D" parent="."]
+texture = ExtResource("2_map")
+centered = false
+texture_filter = 1
+z_index = -20
+
+[node name="Suelo" type="Node2D" parent="."]
+
+[node name="Entrada" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(590, 1086, 858, 1086, 850, 944, 598, 944)
+
+[node name="PlazaSur" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(600, 975, 475, 940, 400, 880, 385, 820, 430, 758, 510, 721, 938, 721, 1018, 758, 1063, 820, 1048, 880, 973, 940, 848, 975)
+
+[node name="RampaOeste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(445, 335, 410, 395, 382, 465, 375, 535, 388, 605, 425, 680, 480, 735, 515, 760, 590, 745, 535, 695, 492, 635, 460, 575, 450, 520, 470, 455, 510, 385, 550, 335)
+
+[node name="RampaEste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(1003, 335, 1038, 395, 1066, 465, 1073, 535, 1060, 605, 1023, 680, 968, 735, 933, 760, 858, 745, 913, 695, 956, 635, 988, 575, 998, 520, 978, 455, 938, 385, 898, 335)
+
+[node name="PatioOeste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(250, 415, 340, 400, 415, 455, 415, 565, 345, 620, 260, 640, 170, 610, 145, 550, 215, 500)
+
+[node name="PatioEste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(1198, 415, 1108, 400, 1033, 455, 1033, 565, 1103, 620, 1188, 640, 1278, 610, 1303, 550, 1233, 500)
+
+[node name="ArenaCerbero" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(430, 350, 348, 318, 317, 265, 336, 211, 435, 166, 1013, 166, 1112, 211, 1131, 265, 1100, 318, 1018, 350, 885, 330, 828, 316, 620, 316, 563, 330)
+
+[node name="EscaleraCerbero" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(615, 300, 833, 300, 854, 380, 594, 380)
+
+[node name="UmbralNorte" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(605, 215, 843, 215, 843, 123, 605, 123)
+
+[node name="Lodo" type="Node2D" parent="."]
+
+[node name="LodoSur" type="Polygon2D" parent="Lodo"]
+script = ExtResource("5_area")
+tipo = "lodo"
+polygon = PackedVector2Array(570, 826, 882, 826, 905, 896, 545, 896)
+
+[node name="LodoOeste" type="Polygon2D" parent="Lodo"]
+script = ExtResource("5_area")
+tipo = "lodo"
+polygon = PackedVector2Array(367, 531, 435, 509, 458, 600, 390, 628)
+
+[node name="LodoEste" type="Polygon2D" parent="Lodo"]
+script = ExtResource("5_area")
+tipo = "lodo"
+polygon = PackedVector2Array(1081, 531, 1013, 509, 990, 600, 1058, 628)
+
+[node name="Marcadores" type="Node2D" parent="."]
+
+[node name="Virgilio" type="Node2D" parent="Marcadores"]
+position = Vector2(857, 935)
+script = ExtResource("6_marker")
+uid = "virgilio"
+kind = "guia"
+caption = "HABLAR CON VIRGILIO"
+
+[node name="OfrendaOeste" type="Node2D" parent="Marcadores"]
+position = Vector2(243, 501)
+script = ExtResource("6_marker")
+uid = "ofrenda_oeste"
+kind = "ofrenda"
+caption = "HUNDIR OFRENDA OESTE"
+
+[node name="OfrendaEste" type="Node2D" parent="Marcadores"]
+position = Vector2(1205, 501)
+script = ExtResource("6_marker")
+uid = "ofrenda_este"
+kind = "ofrenda"
+caption = "HUNDIR OFRENDA ESTE"
+
+[node name="Daria" type="Node2D" parent="Marcadores"]
+position = Vector2(205, 575)
+z_index = 4
+script = ExtResource("6_marker")
+uid = "alma_daria"
+kind = "alma"
+caption = "ESCUCHAR A DARIA"
+
+[node name="Sprite2D" type="Sprite2D" parent="Marcadores/Daria"]
+position = Vector2(0, -40)
+scale = Vector2(0.055, 0.055)
+texture = ExtResource("7_daria")
+texture_filter = 1
+
+[node name="Olmo" type="Node2D" parent="Marcadores"]
+position = Vector2(1243, 575)
+z_index = 4
+script = ExtResource("6_marker")
+uid = "alma_olmo"
+kind = "alma"
+caption = "ESCUCHAR A OLMO"
+
+[node name="Sprite2D" type="Sprite2D" parent="Marcadores/Olmo"]
+position = Vector2(0, -40)
+scale = Vector2(0.055, 0.055)
+texture = ExtResource("8_olmo")
+texture_filter = 1
+
+[node name="Puerta" type="Node2D" parent="Marcadores"]
+position = Vector2(724, 141)
+script = ExtResource("6_marker")
+uid = "puerta"
+kind = "puerta"
+caption = "UMBRAL HACIA VIOLENCIA"
+
+[node name="Enemigos" type="Node2D" parent="."]
+y_sort_enabled = true
+z_index = 4
+
+[node name="Proyectiles" type="Node2D" parent="."]
+z_index = 7
+
+[node name="Dante" parent="." instance=ExtResource("3_dante")]
+position = Vector2(724, 1015)
+z_index = 4
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+layer = 10

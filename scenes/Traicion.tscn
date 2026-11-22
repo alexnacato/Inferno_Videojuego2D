@@ -1,0 +1,122 @@
+[gd_scene load_steps=8 format=3]
+[ext_resource type="Script" path="res://scripts/traicion.gd" id="1_world"]
+[ext_resource type="Texture2D" path="res://assets/traicion/world/cocito.png" id="2_map"]
+[ext_resource type="PackedScene" path="res://scenes/DanteLujuria.tscn" id="3_dante"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://scripts/traicion_area.gd" id="5_area"]
+[ext_resource type="Script" path="res://scripts/traicion_marker.gd" id="6_marker"]
+[ext_resource type="Script" path="res://scripts/traicion_nieve.gd" id="7_nieve"]
+
+[node name="Traicion" type="Node2D"]
+script = ExtResource("1_world")
+
+[node name="Cocito" type="Sprite2D" parent="."]
+texture = ExtResource("2_map")
+centered = false
+texture_filter = 1
+z_index = -20
+
+[node name="Suelo" type="Node2D" parent="."]
+
+[node name="Entrada" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(620, 1086, 820, 1086, 823, 713, 615, 713)
+
+[node name="ExplanadaSur" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(620, 825, 555, 733, 500, 660, 445, 610, 394, 555, 380, 515, 1068, 515, 1054, 555, 1003, 610, 948, 660, 893, 733, 828, 825)
+
+[node name="PatioOeste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(46, 554, 76, 468, 145, 425, 245, 406, 334, 431, 410, 488, 465, 540, 525, 625, 438, 670, 320, 715, 161, 718, 62, 680)
+
+[node name="PatioEste" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(1402, 554, 1372, 468, 1303, 425, 1203, 406, 1114, 431, 1038, 488, 983, 540, 923, 625, 1010, 670, 1128, 715, 1287, 718, 1386, 680)
+
+[node name="Arena" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(720, 613, 480, 565, 358, 480, 330, 370, 385, 265, 525, 218, 724, 207, 923, 218, 1063, 265, 1118, 370, 1090, 480, 968, 565)
+
+[node name="Umbral" type="Polygon2D" parent="Suelo"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(594, 253, 614, 164, 834, 164, 854, 253)
+
+[node name="HieloFino" type="Node2D" parent="."]
+
+[node name="GrietaOeste" type="Polygon2D" parent="HieloFino"]
+script = ExtResource("5_area")
+tipo = "hielo_fino"
+polygon = PackedVector2Array(501, 658, 595, 595, 635, 678, 579, 762)
+
+[node name="GrietaEste" type="Polygon2D" parent="HieloFino"]
+script = ExtResource("5_area")
+tipo = "hielo_fino"
+polygon = PackedVector2Array(947, 658, 853, 595, 813, 678, 869, 762)
+
+[node name="GrietaArena" type="Polygon2D" parent="HieloFino"]
+script = ExtResource("5_area")
+tipo = "hielo_fino"
+polygon = PackedVector2Array(603, 420, 724, 389, 845, 420, 822, 458, 627, 458)
+
+[node name="Marcadores" type="Node2D" parent="."]
+
+[node name="Virgilio" type="Node2D" parent="Marcadores"]
+position = Vector2(811, 947)
+script = ExtResource("6_marker")
+uid = "virgilio"
+kind = "guia"
+caption = "ESCUCHAR A VIRGILIO"
+
+[node name="SelloOeste" type="Node2D" parent="Marcadores"]
+position = Vector2(270, 523)
+script = ExtResource("6_marker")
+uid = "sello_oeste"
+kind = "sello"
+caption = "ROMPER EL JURAMENTO DEL OESTE"
+
+[node name="SelloEste" type="Node2D" parent="Marcadores"]
+position = Vector2(1178, 523)
+script = ExtResource("6_marker")
+uid = "sello_este"
+kind = "sello"
+caption = "ROMPER EL JURAMENTO DEL ESTE"
+
+[node name="AlmaUgolino" type="Node2D" parent="Marcadores"]
+position = Vector2(180, 619)
+script = ExtResource("6_marker")
+uid = "alma_ugolino"
+kind = "alma"
+caption = "ESCUCHAR A UGOLINO"
+
+[node name="AlmaBocca" type="Node2D" parent="Marcadores"]
+position = Vector2(1268, 619)
+script = ExtResource("6_marker")
+uid = "alma_bocca"
+kind = "alma"
+caption = "ESCUCHAR A BOCCA"
+
+[node name="Salida" type="Node2D" parent="Marcadores"]
+position = Vector2(724, 185)
+script = ExtResource("6_marker")
+uid = "salida"
+kind = "puerta"
+caption = "CRUZAR EL CENTRO DEL INFIERNO"
+
+[node name="Enemigos" type="Node2D" parent="."]
+y_sort_enabled = true
+z_index = 4
+
+[node name="Proyectiles" type="Node2D" parent="."]
+z_index = 7
+
+[node name="Nieve" type="Node2D" parent="."]
+script = ExtResource("7_nieve")
+z_index = 8
+
+[node name="Dante" parent="." instance=ExtResource("3_dante")]
+position = Vector2(724, 1000)
+z_index = 4
+
+[node name="HUD" parent="." instance=ExtResource("4_hud")]
+layer = 10

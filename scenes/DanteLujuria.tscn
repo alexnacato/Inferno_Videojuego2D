@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/lujuria_dante.gd" id="1_player"]
 [sub_resource type="CircleShape2D" id="CircleShape2D_hero"]
-radius = 14.0
+radius = 10.0
 
 [node name="Dante" type="CharacterBody2D" groups=["hero"]]
 collision_layer = 1

@@ -42,12 +42,12 @@ func _build() -> void:
     shade.color = Color(0.035, 0.045, 0.060, 0.78)
     add_child(shade)
     var frame: PanelContainer = PanelContainer.new()
-    frame.position = Vector2(378, 110)
-    frame.custom_minimum_size = Vector2(524, 508)
+    frame.position = Vector2(378, 75)
+    frame.custom_minimum_size = Vector2(524, 570)
     frame.add_theme_stylebox_override("panel", _panel_style(Color(0.90, 0.89, 0.86, 0.96), Color("#a7b0b5")))
     add_child(frame)
     var col: VBoxContainer = VBoxContainer.new()
-    col.add_theme_constant_override("separation", 15)
+    col.add_theme_constant_override("separation", 11)
     frame.add_child(col)
     var small_title: Label = _label("D A N T E   A L I G H I E R I", 17, Color("#60676a"))
     small_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -59,10 +59,10 @@ func _build() -> void:
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     col.add_child(subtitle)
     col.add_child(HSeparator.new())
-    var chapter: Label = _label("ACTO I  ·  LIMBO Y LUJURIA", 17, Color("#343e44"))
+    var chapter: Label = _label("LIMBO · LUJURIA · GULA · VIOLENCIA · TRAICIÓN", 16, Color("#343e44"))
     chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     col.add_child(chapter)
-    var desc: Label = _label("Del silencio del Limbo al vendaval de Lujuria: cada elección cuenta.", 17, Color("#4a5154"))
+    var desc: Label = _label("Cada elección cuenta en el descenso hasta el hielo de Cocito.", 17, Color("#4a5154"))
     desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     col.add_child(desc)
@@ -73,10 +73,13 @@ func _build() -> void:
     resume.disabled = not Game.has_save()
     col.add_child(resume)
     resume.pressed.connect(_resume)
+    var final_circle: Button = _button("JUGAR TRAICIÓN · CÍRCULO IX")
+    col.add_child(final_circle)
+    final_circle.pressed.connect(_start_traicion)
     var exit_button: Button = _button("SALIR DEL JUEGO")
     col.add_child(exit_button)
     exit_button.pressed.connect(func() -> void: get_tree().quit())
-    var small: Label = _label("GODOT 4  ·  VISTA CENITAL  ·  DOS CÍRCULOS", 13, Color("#626e73"))
+    var small: Label = _label("GODOT 4  ·  VISTA CENITAL  ·  CINCO ESCENARIOS", 13, Color("#626e73"))
     small.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     col.add_child(small)
     start.grab_focus()
@@ -88,3 +91,9 @@ func _new_game() -> void:
 func _resume() -> void:
     Game.load_progress()
     get_tree().change_scene_to_file(Game.next_scene())
+
+func _start_traicion() -> void:
+    if not Game.has_save():
+        Game.new_game()
+    Game.enter_traicion()
+    get_tree().change_scene_to_file("res://scenes/Traicion.tscn")

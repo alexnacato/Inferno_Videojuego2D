@@ -1,0 +1,30 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Escala penitente: 362x509 -> 0.34184675834971
+Animación: res://assets/gula/enemies/penitente/idle.png
+Animación: res://assets/gula/enemies/penitente/walk.png
+Animación: res://assets/gula/enemies/penitente/attack.png
+Animación: res://assets/gula/enemies/penitente/hurt.png
+Animación: res://assets/gula/enemies/penitente/death.png
+Escala rastrero: 349x537 -> 0.31657355679702
+Animación: res://assets/gula/enemies/rastrero/idle.png
+Animación: res://assets/gula/enemies/rastrero/walk.png
+Animación: res://assets/gula/enemies/rastrero/attack.png
+Animación: res://assets/gula/enemies/rastrero/hurt.png
+Animación: res://assets/gula/enemies/rastrero/death.png
+Escala escanciador: 362x571 -> 0.30472854640981
+Animación: res://assets/gula/enemies/escanciador/idle.png
+Animación: res://assets/gula/enemies/escanciador/walk.png
+Animación: res://assets/gula/enemies/escanciador/attack.png
+Animación: res://assets/gula/enemies/escanciador/hurt.png
+Animación: res://assets/gula/enemies/escanciador/death.png
+Escala cerbero: 356x503 -> 0.69582504970179
+Animación: res://assets/gula/enemies/cerbero/idle.png
+Animación: res://assets/gula/enemies/cerbero/walk.png
+Animación: res://assets/gula/enemies/cerbero/bite.png
+Animación: res://assets/gula/enemies/cerbero/howl.png
+Animación: res://assets/gula/enemies/cerbero/claw.png
+Animación: res://assets/gula/enemies/cerbero/hurt.png
+Animación: res://assets/gula/enemies/cerbero/death.png

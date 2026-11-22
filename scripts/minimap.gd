@@ -13,6 +13,15 @@ func _pos(world: Vector2) -> Vector2:
     return Vector2(12.0 + (world.x / 1540.0) * 167.0, 10.0 + (world.y / 980.0) * 119.0)
 
 func _draw() -> void:
+    if mode == "violencia":
+        _draw_violencia()
+        return
+    if mode == "traicion":
+        _draw_traicion()
+        return
+    if mode == "gula":
+        _draw_gula()
+        return
     if mode == "lujuria":
         _draw_lujuria()
         return
@@ -53,3 +62,60 @@ func _draw_lujuria() -> void:
         var here: Vector2 = Vector2(8.0 + player.global_position.x / 1448.0 * 174.0, 6.0 + player.global_position.y / 1086.0 * 129.0)
         draw_circle(here, 5.0, Color("#b35c56"))
         draw_circle(here, 2.2, Color("#fff1e4"))
+
+func _draw_gula() -> void:
+    draw_rect(Rect2(6, 4, 178, 133), Color("#151a12"), true)
+    draw_rect(Rect2(8, 6, 174, 129), Color("#7d9958"), false, 1.0)
+    var floor_color := Color("#596354")
+    draw_circle(Vector2(97, 105), 28.0, floor_color)
+    draw_line(Vector2(71, 106), Vector2(48, 66), floor_color, 10.0)
+    draw_line(Vector2(123, 106), Vector2(146, 66), floor_color, 10.0)
+    draw_circle(Vector2(47, 65), 14.0, floor_color)
+    draw_circle(Vector2(146, 65), 14.0, floor_color)
+    draw_circle(Vector2(97, 29), 28.0, floor_color)
+    draw_rect(Rect2(88, 8, 18, 23), floor_color, true)
+    draw_circle(Vector2(97, 71), 18.0, Color("#253624"))
+    draw_circle(Vector2(47, 65), 4.0, Color("#b2d47b") if altar_step > 0 else Color("#74826c"))
+    draw_circle(Vector2(146, 65), 4.0, Color("#b2d47b") if altar_step > 1 else Color("#74826c"))
+    draw_circle(Vector2(97, 20), 5.0, Color("#d0edaa") if door_open else Color("#718b65"))
+    if is_instance_valid(player):
+        var here := Vector2(8.0 + player.global_position.x / 1448.0 * 174.0, 6.0 + player.global_position.y / 1086.0 * 129.0)
+        draw_circle(here, 5.0, Color("#b35c56"))
+        draw_circle(here, 2.2, Color("#fff1e4"))
+
+func _draw_traicion() -> void:
+    draw_rect(Rect2(6, 4, 178, 133), Color("#081b27"), true)
+    draw_rect(Rect2(8, 6, 174, 129), Color("#5794a9"), false, 1.0)
+    var floor_color := Color("#476d7b")
+    draw_line(Vector2(97, 129), Vector2(97, 77), floor_color, 22.0)
+    draw_circle(Vector2(97, 56), 35.0, floor_color)
+    draw_line(Vector2(65, 69), Vector2(36, 70), floor_color, 18.0)
+    draw_line(Vector2(129, 69), Vector2(158, 70), floor_color, 18.0)
+    draw_circle(Vector2(37, 70), 14.0, floor_color)
+    draw_circle(Vector2(157, 70), 14.0, floor_color)
+    draw_circle(Vector2(37, 70), 4.0, Color("#9cecff") if altar_step > 0 else Color("#718b94"))
+    draw_circle(Vector2(157, 70), 4.0, Color("#9cecff") if altar_step > 1 else Color("#718b94"))
+    draw_circle(Vector2(97, 24), 5.0, Color("#d0faff") if door_open else Color("#637e89"))
+    if is_instance_valid(player):
+        var here := Vector2(8.0 + player.global_position.x / 1448.0 * 174.0, 6.0 + player.global_position.y / 1086.0 * 129.0)
+        draw_circle(here, 5.0, Color("#b35c56"))
+        draw_circle(here, 2.2, Color("#fff1e4"))
+
+func _violencia_pos(p: Vector2) -> Vector2:
+    return Vector2(10, 7) + p / Vector2(2304, 1536) * Vector2(170, 126)
+
+func _draw_violencia() -> void:
+    draw_rect(Rect2(6, 4, 178, 133), Color("#171417"))
+    draw_rect(Rect2(8, 6, 174, 129), Color("#9d7878"), false, 1.0)
+    draw_rect(Rect2(18, 18, 154, 30), Color("#6c6361"))
+    draw_rect(Rect2(48, 62, 94, 24), Color("#555553"))
+    draw_rect(Rect2(18, 116, 154, 12), Color("#6c6361"))
+    draw_rect(Rect2(18, 89, 154, 21), Color("#7a0c1c"))
+    draw_rect(Rect2(83, 45, 25, 80), Color("#8d8380"))
+    for i in range(3):
+        var p: Vector2 = [Vector2(1010, 1380), Vector2(585, 835), Vector2(1713, 835)][i]
+        draw_circle(_violencia_pos(p), 3.0, Color("#f0d7ba") if i < altar_step else Color("#a95f5d"))
+    draw_circle(_violencia_pos(Vector2(1152, 170)), 4.0, Color("#c8d8c2") if door_open else Color("#8c6265"))
+    if is_instance_valid(player):
+        draw_circle(_violencia_pos(player.position), 4.5, Color("#df9f90"))
+        draw_circle(_violencia_pos(player.position), 2.0, Color("#fff0d2"))

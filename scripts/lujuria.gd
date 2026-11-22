@@ -5,18 +5,20 @@ const ENEMY_SCENE: PackedScene = preload("res://scenes/LujuriaEnemigo.tscn")
 const PROJECTILE_SCENE: PackedScene = preload("res://scenes/LujuriaProyectil.tscn")
 const SPAWN := Vector2(723, 977)
 const SEAL_ORDER := ["sello_inicio", "sello_izquierdo", "sello_derecho"]
+const COLLISION_SAMPLES = [Vector2.ZERO, Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN,
+    Vector2(0.7071, 0.7071), Vector2(-0.7071, 0.7071), Vector2(0.7071, -0.7071), Vector2(-0.7071, -0.7071)]
 const SPAWNS := {
     "inicio": [
         {"id": "diablillo_entrada_1", "type": "diablillo", "pos": Vector2(634, 851)},
-        {"id": "diablillo_entrada_2", "type": "diablillo", "pos": Vector2(837, 844)},
+        {"id": "diablillo_entrada_2", "type": "diablillo", "pos": Vector2(814, 844)},
     ],
     "izquierda": [
         {"id": "diablillo_izq", "type": "diablillo", "pos": Vector2(287, 495)},
-        {"id": "espectro_izq", "type": "espectro", "pos": Vector2(478, 462)},
+        {"id": "espectro_izq", "type": "espectro", "pos": Vector2(478, 495)},
     ],
     "derecha": [
         {"id": "carcelero_derecha", "type": "carcelero", "pos": Vector2(1153, 492)},
-        {"id": "espectro_derecha", "type": "espectro", "pos": Vector2(985, 475)},
+        {"id": "espectro_derecha", "type": "espectro", "pos": Vector2(985, 495)},
     ],
     "patio": [
         {"id": "furia_patio", "type": "furia", "pos": Vector2(518, 340)},
@@ -49,6 +51,32 @@ var dialogue_context: String = ""
 var enemy_boss: Variant
 var ambient: AudioStreamPlayer
 var effect: AudioStreamPlayer
+var navigation_grids: Dictionary = {}
+const NAV_CELL: int = 24
+var left_ramp: PackedVector2Array = PackedVector2Array([
+    Vector2(520, 595), Vector2(630, 600), Vector2(625, 675),
+    Vector2(575, 735), Vector2(485, 760), Vector2(455, 725), Vector2(505, 655)
+])
+var right_ramp: PackedVector2Array = PackedVector2Array([
+    Vector2(820, 600), Vector2(930, 595), Vector2(945, 655),
+    Vector2(995, 725), Vector2(965, 760), Vector2(875, 735), Vector2(825, 675)
+])
+var upper_court: PackedVector2Array = PackedVector2Array([
+    Vector2(480, 275), Vector2(965, 275), Vector2(965, 390),
+    Vector2(920, 410), Vector2(525, 410), Vector2(480, 390)
+])
+var left_side_floor: PackedVector2Array = PackedVector2Array([
+    Vector2(125, 458), Vector2(325, 450), Vector2(460, 475),
+    Vector2(455, 535), Vector2(410, 560), Vector2(395, 610),
+    Vector2(343, 665), Vector2(290, 692), Vector2(235, 678),
+    Vector2(172, 620), Vector2(126, 555)
+])
+var right_side_floor: PackedVector2Array = PackedVector2Array([
+    Vector2(1323, 458), Vector2(1123, 450), Vector2(988, 475),
+    Vector2(993, 535), Vector2(1038, 560), Vector2(1053, 610),
+    Vector2(1105, 665), Vector2(1158, 692), Vector2(1213, 678),
+    Vector2(1276, 620), Vector2(1322, 555)
+])
 
 func _ready() -> void:
     Game.enter_lujuria()
@@ -61,6 +89,7 @@ func _ready() -> void:
     hud.exit_to_menu_requested.connect(_back_to_menu)
     fx.world_ref = self
     _make_interactives()
+    _build_navigation()
     _load_state()
     hero.restore(hero.max_health, checkpoint)
     hero.control_enabled = true
@@ -86,14 +115,20 @@ func _start_audio() -> void:
     effect.volume_db = -12.0
     add_child(effect)
 
+func _exit_tree() -> void:
+    if is_instance_valid(ambient):
+        ambient.stop()
+    if is_instance_valid(effect):
+        effect.stop()
+
 func _play_fx() -> void:
     if effect.stream != null:
         effect.play()
 
 func _make_interactives() -> void:
     _add_marker("virgilio", "virgilio", "HABLAR CON VIRGILIO", Vector2(858, 877))
-    _add_marker("paolo", "paolo", "ESCUCHAR A PAOLO", Vector2(293, 532))
-    _add_marker("francesca", "francesca", "ESCUCHAR A FRANCESCA", Vector2(1153, 529))
+    _add_marker("paolo", "paolo", "ESCUCHAR A PAOLO", Vector2(293, 575))
+    _add_marker("francesca", "francesca", "ESCUCHAR A FRANCESCA", Vector2(1153, 575))
     _add_marker("sello_inicio", "sello", "SELLO DE LA MEMORIA", Vector2(722, 689))
     _add_marker("sello_izquierdo", "sello", "SELLO DEL ALIENTO", Vector2(387, 422))
     _add_marker("sello_derecho", "sello", "SELLO DEL JUICIO", Vector2(1052, 420))
@@ -101,6 +136,7 @@ func _make_interactives() -> void:
 
 func _add_marker(uid: String, kind: String, caption: String, where: Vector2) -> void:
     var marker: Variant = INTER_SCENE.instantiate()
+    marker.name = uid
     marker.uid = uid
     marker.kind = kind
     marker.caption = caption
@@ -126,8 +162,8 @@ func _load_state() -> void:
     boss_spawned = bool(data.get("lujuria_boss_spawned", false))
     boss_defeated = bool(data.get("lujuria_boss_defeated", false))
     checkpoint = Vector2(float(data.get("lujuria_checkpoint_x", SPAWN.x)), float(data.get("lujuria_checkpoint_y", SPAWN.y)))
-    if not can_walk(checkpoint, 14.0):
-        checkpoint = SPAWN
+    if not can_walk(checkpoint, 10.0):
+        checkpoint = Vector2(544, 390) if seals.size() >= 3 else Vector2(720, 790) if seals.size() > 0 else SPAWN
     for marker in markers.get_children():
         marker.call("set_done", str(marker.get("uid")) in seals or str(marker.get("uid")) in decided or str(marker.get("uid")) == "puerta" and boss_defeated)
 
@@ -159,7 +195,7 @@ func _restore_enemies() -> void:
 func _process(delta: float) -> void:
     wind_clock += delta
     pulse_left = maxf(0.0, pulse_left - delta)
-    hud.set_dash_fraction(1.0 - clampf(hero.dash_recharge / 0.85, 0.0, 1.0))
+    hud.set_dash_fraction(1.0 - clampf(hero.dash_recharge / hero.dash_cooldown_duration, 0.0, 1.0))
     if not game_active or paused or hud.dialogue_open:
         hud.set_nearby("")
         return
@@ -169,6 +205,8 @@ func _process(delta: float) -> void:
     hud.set_nearby(str(nearby.caption) if nearby != null else "")
     if Input.is_action_just_pressed("interact") and nearby != null:
         _use_marker(nearby)
+    if Input.is_action_just_pressed("hint"):
+        _show_hint()
     _trigger_encounters()
     _check_boss_spawn()
 
@@ -223,7 +261,7 @@ func _activate_seal(marker: Variant) -> void:
         return
     seals.append(uid)
     marker.set_done(true)
-    checkpoint = Vector2(722, 685) if seals.size() == 1 else Vector2(544, 390) if seals.size() == 3 else checkpoint
+    checkpoint = Vector2(720, 790) if seals.size() == 1 else Vector2(544, 390) if seals.size() == 3 else checkpoint
     _play_fx()
     _save_state()
     _refresh_hud()
@@ -363,6 +401,20 @@ func _spawn_enemy(kind: String, uid: String, spawn_at: Vector2):
     if kind == "minos":
         enemy.hp_changed.connect(func(value: int, maximum: int): hud.set_boss_health(value, maximum))
     foes.add_child(enemy)
+    if not can_occupy_enemy(enemy.global_position, enemy, enemy.body_radius):
+        for distance in [64.0, 104.0, 144.0]:
+            var relocated: bool = false
+            for direction in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN,
+                    Vector2(-0.7071, -0.7071), Vector2(0.7071, -0.7071),
+                    Vector2(-0.7071, 0.7071), Vector2(0.7071, 0.7071)]:
+                var candidate: Vector2 = spawn_at + direction * distance
+                if can_occupy_enemy(candidate, enemy, enemy.body_radius):
+                    enemy.global_position = candidate
+                    enemy.anchor = candidate
+                    relocated = true
+                    break
+            if relocated:
+                break
     return enemy
 
 func _on_enemy_died(uid: String, kind: String) -> void:
@@ -408,7 +460,7 @@ func melee_hit(origin: Vector2, facing: Vector2) -> void:
         if enemy.dead or not enemy.active:
             continue
         var vector: Vector2 = enemy.global_position - origin
-        if vector.length() <= (100.0 if enemy.archetype == "minos" else 72.0) and vector.normalized().dot(facing) > 0.05:
+        if vector.length() <= (100.0 if enemy.archetype == "minos" else 72.0) and vector.normalized().dot(facing) > 0.25 and has_clear_path(origin, enemy.global_position, 5.0):
             enemy.take_damage(2, facing)
     _play_fx()
 
@@ -447,33 +499,115 @@ func wind_at(p: Vector2) -> Vector2:
 func can_walk(p: Vector2, radius: float = 8.0) -> bool:
     # Hand-authored traversal geometry built over the user's illustrated 2D map.
     # Tested with a graph reachability scan; excludes abyss, walls, and the center statue.
-    for pt in [p, p + Vector2(radius, 0), p + Vector2(-radius, 0), p + Vector2(0, radius), p + Vector2(0, -radius)]:
-        if not _is_ground(pt):
+    for offset in COLLISION_SAMPLES:
+        var sample: Vector2 = p + offset * radius
+        if not _is_ground(sample):
+            return false
+        for marker in markers.get_children():
+            if str(marker.kind) in ["paolo", "francesca", "virgilio"] and sample.distance_to(marker.global_position) < 24.0:
+                return false
+    return true
+
+func can_occupy_hero(p: Vector2, dodging: bool = false) -> bool:
+    if not can_walk(p, 10.0):
+        return false
+    for marker in markers.get_children():
+        if str(marker.kind) in ["paolo", "francesca", "virgilio"] and p.distance_to(marker.global_position) < 24.0:
+            return false
+    # Los enemigos aplican daño por contacto, pero no forman muros móviles que
+    # atrapen al jugador entre ellos y el borde de la plataforma.
+    return true
+
+func can_occupy_enemy(p: Vector2, moving_enemy: Node2D, radius: float) -> bool:
+    if not can_walk(p, radius):
+        return false
+    if moving_enemy.archetype == "minos" and not Geometry2D.is_point_in_polygon(p, upper_court):
+        return false
+    if p.distance_to(hero.global_position) < radius + 10.0:
+        return false
+    for enemy in foes.get_children():
+        if enemy != moving_enemy and not enemy.dead and p.distance_to(enemy.global_position) < radius + enemy.body_radius:
             return false
     return true
 
+func has_clear_path(a: Vector2, b: Vector2, radius: float = 4.0) -> bool:
+    var distance: float = a.distance_to(b)
+    var steps: int = maxi(1, ceili(distance / 8.0))
+    for i in range(1, steps):
+        if not can_walk(a.lerp(b, float(i) / float(steps)), radius):
+            return false
+    return true
+
+func _build_navigation() -> void:
+    # Three clearance maps keep large enemies away from narrow painted ledges.
+    for clearance in [14, 24, 36]:
+        var grid: AStarGrid2D = AStarGrid2D.new()
+        grid.region = Rect2i(0, 0, 61, 46)
+        grid.cell_size = Vector2(NAV_CELL, NAV_CELL)
+        grid.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ONLY_IF_NO_OBSTACLES
+        grid.update()
+        for x in range(grid.region.size.x):
+            for y in range(grid.region.size.y):
+                var center: Vector2 = Vector2(x + 0.5, y + 0.5) * float(NAV_CELL)
+                if not can_walk(center, float(clearance)):
+                    grid.set_point_solid(Vector2i(x, y), true)
+        navigation_grids[clearance] = grid
+
+func route_to(from: Vector2, destination: Vector2, radius: float) -> PackedVector2Array:
+    var clearance: int = 36 if radius > 25.0 else 24 if radius > 18.0 else 14
+    var grid: AStarGrid2D = navigation_grids[clearance]
+    var start: Vector2i = _nearest_nav_cell(grid, from)
+    var finish: Vector2i = _nearest_nav_cell(grid, destination)
+    if start.x < 0 or finish.x < 0:
+        return PackedVector2Array()
+    var ids: Array[Vector2i] = grid.get_id_path(start, finish)
+    var result: PackedVector2Array = PackedVector2Array()
+    for id in ids:
+        result.append(Vector2(id.x + 0.5, id.y + 0.5) * float(NAV_CELL))
+    return result
+
+func _nearest_nav_cell(grid: AStarGrid2D, p: Vector2) -> Vector2i:
+    var base: Vector2i = Vector2i(floori(p.x / NAV_CELL), floori(p.y / NAV_CELL))
+    for ring in range(0, 5):
+        for x in range(base.x - ring, base.x + ring + 1):
+            for y in range(base.y - ring, base.y + ring + 1):
+                var cell: Vector2i = Vector2i(x, y)
+                if grid.is_in_boundsv(cell) and not grid.is_point_solid(cell):
+                    return cell
+    return Vector2i(-1, -1)
+
 func _in_ellipse(p: Vector2, c: Vector2, rx: float, ry: float) -> bool:
-    return pow((p.x - c.x) / rx, 2.0) + pow((p.y - c.y) / ry, 2.0) <= 1.0
+    var d: Vector2 = p - c
+    return d.x * d.x / (rx * rx) + d.y * d.y / (ry * ry) <= 1.0
 
 func _is_ground(p: Vector2) -> bool:
     if p.x < 104.0 or p.x > 1342.0 or p.y < 155.0 or p.y > 1070.0:
         return false
     var ground := false
-    # Entrance causeway and lower ceremonial courtyard.
-    ground = ground or Rect2(634, 900, 188, 176).has_point(p)
-    ground = ground or _in_ellipse(p, Vector2(720, 833), 339.0, 164.0)
-    ground = ground or Rect2(609, 620, 230, 157).has_point(p)
-    # Circumferential plaza around the lovers' statue.
-    ground = ground or _in_ellipse(p, Vector2(724, 531), 300.0, 198.0)
-    ground = ground or Rect2(140, 440, 1170, 113).has_point(p)
-    ground = ground or Rect2(260, 395, 275, 153).has_point(p)
-    ground = ground or Rect2(910, 395, 280, 153).has_point(p)
-    # Upper platform with Minos and the doorway.
-    ground = ground or Rect2(454, 258, 540, 165).has_point(p)
-    ground = ground or Rect2(560, 177, 325, 155).has_point(p)
-    ground = ground or Rect2(580, 389, 291, 57).has_point(p)
-    # Monumental statue is solid and not traversable.
+    # Floor shapes follow the visible stone: entrance, lower court and two curved ramps.
+    ground = ground or Rect2(650, 930, 145, 156).has_point(p)
+    ground = ground or _in_ellipse(p, Vector2(720, 825), 340.0, 138.0)
+    ground = ground or Geometry2D.is_point_in_polygon(p, left_ramp)
+    ground = ground or Geometry2D.is_point_in_polygon(p, right_ramp)
+    # Ring around the statue and the two side paths to the souls.
+    ground = ground or _in_ellipse(p, Vector2(725, 535), 235.0, 150.0)
+    ground = ground or Geometry2D.is_point_in_polygon(p, left_side_floor)
+    ground = ground or Geometry2D.is_point_in_polygon(p, right_side_floor)
+    ground = ground or Rect2(150, 455, 400, 85).has_point(p)
+    ground = ground or Rect2(900, 455, 400, 85).has_point(p)
+    # Upper court, side approaches and the doorway terrace.
+    ground = ground or Geometry2D.is_point_in_polygon(p, upper_court)
+    ground = ground or Rect2(540, 380, 110, 85).has_point(p)
+    ground = ground or Rect2(800, 380, 110, 85).has_point(p)
+    ground = ground or Rect2(455, 175, 535, 50).has_point(p)
+    ground = ground or Rect2(575, 215, 290, 75).has_point(p)
     if _in_ellipse(p, Vector2(727, 503), 125.0, 116.0):
+        return false
+    # Openings beneath the soul balconies are chasms, despite the painted wind.
+    if _in_ellipse(p, Vector2(347, 616), 118.0, 72.0) or _in_ellipse(p, Vector2(1101, 616), 118.0, 72.0):
+        return false
+    # The arch below the statue is a wall, between the two ramps.
+    if Rect2(654, 670, 146, 85).has_point(p):
         return false
     return ground
 
