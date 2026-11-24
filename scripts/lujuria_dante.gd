@@ -5,9 +5,6 @@ signal health_changed(current: int, maximum: int)
 signal exhausted
 signal combat_action(kind: String)
 
-const ACTIONS := {"idle": 4, "walk": 8, "dash": 4, "ready": 4}
-const DIRECTIONS := ["down", "left", "up", "right"]
-const FRAME := Vector2(80, 96)
 @export var move_speed := 188.0
 @export var dash_speed := 430.0
 @export var max_health := 6
@@ -137,22 +134,7 @@ func _play(state: String) -> void:
             art.play(anim)
 
 func _create_animations() -> void:
-    var frames := SpriteFrames.new()
-    for action in ACTIONS.keys():
-        var texture: Texture2D = load("res://assets/dante/%s.png" % action)
-        if texture == null:
-            continue
-        for direction_i in range(4):
-            var anim: String = str(action) + "_" + DIRECTIONS[direction_i]
-            frames.add_animation(anim)
-            frames.set_animation_speed(anim, 9.0 if str(action) == "walk" else 7.0)
-            frames.set_animation_loop(anim, str(action) == "idle" or str(action) == "walk")
-            for i in range(int(ACTIONS[action])):
-                var piece := AtlasTexture.new()
-                piece.atlas = texture
-                piece.region = Rect2(i * FRAME.x, direction_i * FRAME.y, FRAME.x, FRAME.y)
-                frames.add_frame(anim, piece)
-    art.sprite_frames = frames
+    art.sprite_frames = preload("res://scripts/sprite_library.gd").dante()
 
 func _install_inputs() -> void:
     var bindings := {

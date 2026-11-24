@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3]
 [ext_resource type="Script" path="res://scripts/limbo.gd" id="1_limbo"]
-[ext_resource type="Texture2D" path="res://assets/world/limbo_master.png" id="2_art"]
+[ext_resource type="Texture2D" path="res://assets/world/limbo_restaurado.png" id="2_art"]
 [ext_resource type="PackedScene" path="res://scenes/Dante.tscn" id="3_dante"]
 [ext_resource type="Script" path="res://scripts/particles.gd" id="4_particles"]
 [ext_resource type="Script" path="res://scripts/gate_visual.gd" id="5_gate"]
@@ -11,6 +11,7 @@ script = ExtResource("1_limbo")
 [node name="Background" type="Sprite2D" parent="."]
 texture = ExtResource("2_art")
 centered = false
+scale = Vector2(0.9796438, 0.9790210)
 z_index = -20
 texture_filter = 1
 

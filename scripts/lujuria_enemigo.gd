@@ -278,11 +278,10 @@ func _setup_animations() -> void:
 		lib.set_animation_speed(action, 7.0 if action != "walk" else 9.0)
 		lib.set_animation_loop(action, action == "idle" or action == "walk")
 		var count: int = maxi(1, int(texture.get_width() / size.x))
+		var source := texture.get_image()
 		for i in range(count):
-			var frame := AtlasTexture.new()
-			frame.atlas = texture
-			frame.region = Rect2(i * size.x, 0.0, size.x, size.y)
-			lib.add_frame(action, frame)
+			var region := Rect2i(i * int(size.x), 0, int(size.x), int(size.y))
+			lib.add_frame(action, preload("res://scripts/sprite_library.gd").isolated(texture, source, region, 6))
 	art.sprite_frames = lib
 
 func _draw() -> void:

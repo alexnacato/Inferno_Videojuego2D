@@ -3,7 +3,7 @@ extends Control
 func _ready() -> void:
     var bg: TextureRect = TextureRect.new()
     bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    bg.texture = load("res://assets/world/limbo_master.png")
+    bg.texture = load("res://assets/world/limbo_restaurado.png")
     bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
     bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
     add_child(bg)

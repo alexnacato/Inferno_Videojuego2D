@@ -22,10 +22,20 @@ void fragment() {
     float gray = dot(sample_color.rgb, vec3(0.299,0.587,0.114));
     vec3 enhanced = mix(vec3(gray), sample_color.rgb, 1.24);
     enhanced = clamp((enhanced - 0.5) * 1.12 + 0.55, 0.0, 1.0);
-    if (hero_palette && sample_color.r > sample_color.g * 1.23 && sample_color.g < 0.61) {
-        enhanced = mix(enhanced, vec3(0.035, 0.52, 0.48) * (0.52 + 0.9 * gray), 0.86);
+    if (hero_palette) {
+        // Recolor the red fabric smoothly, preserving facial tones and highlights.
+        float red_cloth = smoothstep(0.05, 0.18, sample_color.r - sample_color.g)
+            * smoothstep(0.025, 0.09, sample_color.r - sample_color.b)
+            * (1.0 - smoothstep(0.41, 0.61, sample_color.g));
+        vec3 petrol = vec3(0.09, 0.52, 0.48) * (0.35 + gray * 1.10);
+        enhanced = mix(enhanced, petrol, red_cloth * 0.80);
     }
-    vec4 silhouette = light_edge * vec4(1.0,1.0,1.0,outer);
-    silhouette = mix(silhouette, dark_edge, smoothstep(0.1,0.7,inner));
-    COLOR = mix(silhouette, vec4(enhanced,sample_color.a), smoothstep(0.01,0.45,sample_color.a)) * tint;
+    // Outlines live outside the sprite. Keep all visible texels, even soft edges.
+    float dark_alpha = inner * dark_edge.a;
+    float rim_alpha = outer * light_edge.a;
+    vec3 edge_rgb = mix(light_edge.rgb, dark_edge.rgb, inner);
+    float edge_alpha = max(dark_alpha, rim_alpha) * (1.0 - sample_color.a);
+    float alpha = sample_color.a + edge_alpha;
+    vec3 rgb = (enhanced * sample_color.a + edge_rgb * edge_alpha) / max(alpha, 0.0001);
+    COLOR = vec4(rgb, alpha) * tint;
 }

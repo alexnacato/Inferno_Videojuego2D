@@ -40,7 +40,9 @@ func _ready() -> void:
         var sprite := AnimatedSprite2D.new()
         var library := SpriteFrames.new()
         for facing in ["down", "up", "left", "right"]:
-            var sheet := "res://assets/violencia/minotauro_frente_espalda.png" if facing in ["down","up"] else "res://assets/violencia/minotauro_lados.png"
+            var sheet := "res://assets/violencia/minotauro_frente_espalda_limpio.png" if facing in ["down","up"] else "res://assets/violencia/minotauro_lados_limpio.png"
+            var texture: Texture2D = load(sheet)
+            var source_image := texture.get_image()
             var row := 0 if facing in ["down","left"] else 1
             for action in ["idle","walk","attack"]:
                 var key: String = action+"_"+facing
@@ -49,7 +51,8 @@ func _ready() -> void:
                 library.set_animation_loop(key,true)
                 var columns: Array = [0] if action == "idle" else [1,2] if action == "walk" else [3,0]
                 for column in columns:
-                    library.add_frame(key,preload("res://scripts/sprite_library.gd").frame(sheet,column,row,4,2,Vector2i(190,210)))
+                    var region := Rect2i(column * 190, row * 210, 190, 210)
+                    library.add_frame(key, preload("res://scripts/sprite_library.gd").isolated(texture, source_image, region))
         sprite.sprite_frames = library
         sprite.position.y = -101
         sprite.play("idle_down")
@@ -63,11 +66,10 @@ func _ready() -> void:
             library.add_animation(action)
             library.set_animation_speed(action, 8)
             library.set_animation_loop(action, action in ["idle", "walk"])
-            for i in range(int(texture.get_width()/128)):
-                var frame := AtlasTexture.new()
-                frame.atlas = texture
-                frame.region = Rect2(i*128,0,128,144)
-                library.add_frame(action,frame)
+            var source_image := texture.get_image()
+            for i in range(int(texture.get_width() / 128)):
+                var region := Rect2i(i * 128, 0, 128, 144)
+                library.add_frame(action, preload("res://scripts/sprite_library.gd").isolated(texture, source_image, region, 6))
         sprite.sprite_frames = library
         sprite.scale = Vector2(0.85,0.85)
         sprite.position.y = -62

@@ -30,7 +30,7 @@ func _button(text_value: String) -> Button:
 
 func _build() -> void:
     var art: Sprite2D = Sprite2D.new()
-    art.texture = load("res://assets/world/limbo_master.png")
+    art.texture = load("res://assets/world/limbo_restaurado.png")
     art.position = Vector2(640, 360)
     art.scale = Vector2(0.92, 0.92)
     add_child(art)

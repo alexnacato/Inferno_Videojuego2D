@@ -27,10 +27,6 @@ var lake_jump_elapsed: float = 0.0
 var lake_jump_from: Vector2 = Vector2.ZERO
 var lake_jump_to: Vector2 = Vector2.ZERO
 const LAKE_JUMP_DURATION: float = 0.43
-const DIRS = ["down", "left", "up", "right"]
-const COUNTS: Dictionary = {"idle": 4, "walk": 8, "dash": 4, "interact": 4, "ready": 4}
-const FRAME_WIDTH: int = 80
-const FRAME_HEIGHT: int = 96
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
@@ -147,24 +143,7 @@ func dash_ready_fraction() -> float:
     return 1.0 - clampf(dash_cooldown_left / dash_cooldown, 0.0, 1.0)
 
 func _build_animations() -> void:
-    var library: SpriteFrames = SpriteFrames.new()
-    for state in COUNTS.keys():
-        var texture: Texture2D = load("res://assets/dante/" + str(state) + ".png") as Texture2D
-        if texture == null:
-            push_error("Falta spritesheet: " + str(state))
-            continue
-        var count: int = int(COUNTS[state])
-        for direction_index in range(4):
-            var key: String = str(state) + "_" + DIRS[direction_index]
-            library.add_animation(key)
-            library.set_animation_speed(key, 10.0 if state == "walk" else 8.0)
-            library.set_animation_loop(key, state == "walk" or state == "idle")
-            for column in range(count):
-                var atlas: AtlasTexture = AtlasTexture.new()
-                atlas.atlas = texture
-                atlas.region = Rect2(column * FRAME_WIDTH, direction_index * FRAME_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT)
-                library.add_frame(key, atlas)
-    sprite.sprite_frames = library
+    sprite.sprite_frames = preload("res://scripts/sprite_library.gd").dante()
 
 func _register_inputs() -> void:
     _key("move_left", KEY_A)

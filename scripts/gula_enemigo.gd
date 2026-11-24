@@ -268,11 +268,10 @@ func _setup_animations() -> void:
         var fps: float = 8.0 if action == "idle" else 10.0 if action == "walk" else 16.0 if action == "hurt" else 8.0 if action == "death" else 9.0 if archetype == "penitente" else 8.0
         library.set_animation_speed(action, fps)
         library.set_animation_loop(action, action in ["idle", "walk"])
+        var source := texture.get_image()
         for i in range(6):
-            var atlas := AtlasTexture.new()
-            atlas.atlas = texture
-            atlas.region = Rect2(i * FRAME_SIZE.x, 0.0, FRAME_SIZE.x, FRAME_SIZE.y)
-            library.add_frame(action, atlas)
+            var region := Rect2i(i * int(FRAME_SIZE.x), 0, int(FRAME_SIZE.x), int(FRAME_SIZE.y))
+            library.add_frame(action, preload("res://scripts/sprite_library.gd").isolated(texture, source, region, 6))
     art.sprite_frames = library
 
 func _draw() -> void:

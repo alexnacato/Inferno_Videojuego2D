@@ -27,8 +27,7 @@ func _ready() -> void:
     cooldown = 1.1
     var sprite := AnimatedSprite2D.new()
     var canvas: Vector2i = config["size"]
-    var frames_path := "res://assets/violencia/enemies/%s_frames.res" % archetype
-    var library: SpriteFrames = load(frames_path) if ResourceLoader.exists(frames_path) else build_library()
+    var library: SpriteFrames = build_library()
     sprite.sprite_frames = library
     sprite.position.y = -float(canvas.y)/2.0+4.0
     sprite.play("idle_down")
@@ -159,7 +158,8 @@ func _draw() -> void:
 func build_library() -> SpriteFrames:
     var library := SpriteFrames.new()
     var config: Dictionary = CONFIG[archetype]
-    var sheet: String = "res://assets/violencia/enemies/%s.png" % archetype
+    var sheet: Texture2D = load("res://assets/violencia/enemies/%s_limpio.png" % archetype)
+    var source := sheet.get_image()
     var canvas: Vector2i = config["size"]
     for row in range(4):
         var direction: String = ["down","left","up","right"][row]
@@ -171,5 +171,6 @@ func build_library() -> SpriteFrames:
             var columns: Array = [0] if action == "idle" else [1,2] if action == "walk" else [3] if action == "prepare" else [4] if action == "attack" else [5]
             for column in columns:
                 var source_row := 3 if archetype == "centauro" and row == 1 and action in ["prepare","attack"] else row
-                library.add_frame(key,ART.frame(sheet,column,source_row,6,4,canvas))
+                var region := Rect2i(Vector2i(column * canvas.x, source_row * canvas.y), canvas)
+                library.add_frame(key, ART.isolated(sheet, source, region))
     return library
