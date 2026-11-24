@@ -18,6 +18,10 @@ config/name="INFERNO: EL DESCENSO — TRAICIÓN"
 run/main_scene="res://scenes/MenuPrincipal.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
+[gui]
+
+theme/custom="res://themes/inferno.tres"
+
 [autoload]
 
 Game="*res://scripts/game_state.gd"
@@ -29,10 +33,6 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
-
-[gui]
-
-theme/custom="res://themes/inferno.tres"
 
 [layer_names]
 

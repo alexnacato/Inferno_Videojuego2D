@@ -1,26 +1,27 @@
-[gd_scene format=3 uid="uid://6oekkac55qa8"]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://blvy8smxjcmdi" path="res://scripts/lujuria_dante.gd" id="1_player"]
-
+[ext_resource type="Script" path="res://scripts/lujuria_dante.gd" id="1_player"]
 [sub_resource type="CircleShape2D" id="CircleShape2D_hero"]
+radius = 10.0
 
-[node name="Dante" type="CharacterBody2D" unique_id=1568209778 groups=["hero"]]
+[node name="Dante" type="CharacterBody2D" groups=["hero"]]
+collision_layer = 1
 collision_mask = 0
 script = ExtResource("1_player")
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=2061837047]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 position = Vector2(0, -58)
 scale = Vector2(1.24, 1.24)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1079049488]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_hero")
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=589350556]
+[node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(0, -24)
 zoom = Vector2(0.96, 0.96)
-limit_left = 100
-limit_top = 57
-limit_right = 1548
-limit_bottom = 1143
+limit_left = 0
+limit_top = 0
+limit_right = 1448
+limit_bottom = 1086
 position_smoothing_enabled = true
 position_smoothing_speed = 4.5
