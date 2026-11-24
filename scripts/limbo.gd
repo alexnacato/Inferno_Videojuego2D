@@ -9,10 +9,12 @@ const POINTS = [
     {"id":"altar_saber", "name":"SANTUARIO DEL SABER", "pos":Vector2(1255, 362), "radius":112.0, "kind":"altar"},
     {"id":"altar_compasion", "name":"SANTUARIO DE LA COMPASIÓN", "pos":Vector2(770, 620), "radius":110.0, "kind":"altar"},
     {"id":"alma_elio", "name":"ESCUCHAR A ELIO", "pos":Vector2(67, 633), "radius":115.0, "kind":"soul"},
-    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1092, 287), "radius":116.0, "kind":"soul"},
+    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1092, 287), "radius":135.0, "kind":"soul"},
     {"id":"puerta", "name":"PUERTA DEL DESCENSO", "pos":Vector2(769, 236), "radius":96.0, "kind":"gate"}
 ]
 const ORDER = ["altar_memoria", "altar_saber", "altar_compasion"]
+const COLLISION_SAMPLES = [Vector2.ZERO, Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN,
+    Vector2(0.7071, 0.7071), Vector2(-0.7071, 0.7071), Vector2(0.7071, -0.7071), Vector2(-0.7071, -0.7071)]
 
 @onready var player: Variant = $World/Dante
 @onready var world: Node2D = $World
@@ -22,10 +24,16 @@ var markers: Dictionary = {}
 var focused_id: String = ""
 var dialog_context: String = ""
 var paused: bool = false
+var leaving := false
 var ambient: AudioStreamPlayer
+var monument_outline: PackedVector2Array = PackedVector2Array([
+    Vector2(674, 491), Vector2(860, 491), Vector2(915, 527),
+    Vector2(943, 568), Vector2(926, 605), Vector2(859, 639),
+    Vector2(665, 639), Vector2(613, 608), Vector2(594, 565), Vector2(621, 525)
+])
 
 func _ready() -> void:
-    _build_collision()
+    player.navigation = self
     _build_markers()
     hud = HUD_SCENE.instantiate()
     add_child(hud)
@@ -38,7 +46,8 @@ func _ready() -> void:
     player.dash_started.connect(func() -> void: _play_sound("esquiva", -17.0))
     player.message_requested.connect(_toast)
     player.combat_enabled = false
-    player.global_position = Vector2(float(Game.progress["pos_x"]), float(Game.progress["pos_y"])) if bool(Game.progress["checkpoint"]) else Vector2(769, 834)
+    var saved_position: Vector2 = Vector2(float(Game.progress["pos_x"]), float(Game.progress["pos_y"])) if bool(Game.progress["checkpoint"]) else Vector2(769, 834)
+    player.global_position = saved_position if can_walk(saved_position, 10.0) else Vector2(769, 834)
     _build_ambient()
     _refresh()
     if not bool(Game.progress["intro_seen"]):
@@ -49,9 +58,9 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
     if hud == null:
         return
-    player.input_locked = paused or hud.dialogue_open
+    player.input_locked = leaving or paused or hud.dialogue_open
     hud.set_dash_fraction(player.dash_ready_fraction())
-    if paused or hud.dialogue_open:
+    if leaving or paused or hud.dialogue_open:
         hud.set_nearby("")
         return
     var near: Dictionary = _nearby()
@@ -63,61 +72,49 @@ func _process(_delta: float) -> void:
             var marker: Node2D = markers[key]
             marker.set("hovered", str(key) == id)
 
-func _build_collision() -> void:
-    # Colisiones en coordenadas de la imagen original (1540 x 980).
-    # Las escaleras centrales quedan abiertas entre los dos pilares.
-    for rectangle in [
-        Rect2(-60, -60, 1660, 65), Rect2(-60, 967, 1660, 70),
-        Rect2(-60, -60, 74, 1120), Rect2(1526, -60, 76, 1120),
-        Rect2(0, 0, 628, 390), Rect2(912, 0, 628, 380),
-        Rect2(628, 0, 284, 219),
-        Rect2(628, 219, 45, 171), Rect2(866, 219, 46, 171),
-        # Muros bajos y pilares junto a la entrada inferior.
-        Rect2(0, 825, 560, 60), Rect2(980, 825, 560, 60),
-        Rect2(510, 824, 78, 142), Rect2(595, 774, 57, 192),
-        Rect2(885, 774, 57, 192), Rect2(955, 824, 55, 142)
-    ]:
-        _solid(rectangle)
-    # Contornos de fuentes, incluidos sus bordes y jardineras.
-    _solid_polygon(PackedVector2Array([
-        Vector2(72, 485), Vector2(159, 447), Vector2(432, 447),
-        Vector2(501, 487), Vector2(508, 641), Vector2(454, 686),
-        Vector2(142, 686), Vector2(72, 646)
-    ]))
-    _solid_polygon(PackedVector2Array([
-        Vector2(1032, 485), Vector2(1102, 447), Vector2(1378, 447),
-        Vector2(1462, 487), Vector2(1462, 646), Vector2(1394, 686),
-        Vector2(1080, 686), Vector2(1032, 641)
-    ]))
-    # Pedestal central: el volumen se apoya en el suelo, no en la cabeza.
-    var pedestal := PackedVector2Array()
-    for i in range(32):
-        var angle := TAU * float(i) / 32.0
-        pedestal.append(Vector2(770, 584) + Vector2(cos(angle) * 180.0, sin(angle) * 70.0))
-    _solid_polygon(pedestal)
+func can_walk(p: Vector2, radius: float = 10.0) -> bool:
+    for offset in COLLISION_SAMPLES:
+        if not _is_path(p + offset * radius):
+            return false
+    return true
 
-func _solid_polygon(points: PackedVector2Array) -> void:
-    var body := StaticBody2D.new()
-    body.name = "ContornoDecoracion"
-    body.collision_layer = 1
-    body.collision_mask = 0
-    world.add_child(body)
-    var shape := CollisionPolygon2D.new()
-    shape.polygon = points
-    body.add_child(shape)
+func lake_jump_target(start: Vector2, direction: Vector2) -> Vector2:
+    if absf(direction.y) < 0.88 or absf(direction.x) > 0.35 or not can_walk(start, 10.0):
+        return start
+    var landing: Vector2 = start + Vector2(0.0, signf(direction.y) * 225.0)
+    if not can_walk(landing, 10.0):
+        return start
+    var midpoint: Vector2 = (start + landing) * 0.5
+    for center_x in [285.0, 1253.0]:
+        if _in_ellipse(midpoint, Vector2(center_x, 568.0), 142.0, 67.0):
+            return landing
+    return start
 
-func _solid(rectangle: Rect2) -> void:
-    var obj: StaticBody2D = StaticBody2D.new()
-    obj.name = "DecoracionSolida"
-    obj.collision_layer = 1
-    obj.collision_mask = 0
-    obj.position = rectangle.position + rectangle.size / 2.0
-    world.add_child(obj)
-    var collider: CollisionShape2D = CollisionShape2D.new()
-    var shape: RectangleShape2D = RectangleShape2D.new()
-    shape.size = rectangle.size
-    collider.shape = shape
-    obj.add_child(collider)
+func _is_path(p: Vector2) -> bool:
+    if p.x < 16.0 or p.x > 1524.0 or p.y < 218.0 or p.y > 964.0:
+        return false
+    # Stone paths, steps and the entrance apron of the painted garden.
+    var stone: bool = Rect2(16, 391, 1508, 94).has_point(p)
+    stone = stone or Rect2(16, 640, 1508, 102).has_point(p)
+    stone = stone or Rect2(450, 455, 640, 287).has_point(p)
+    stone = stone or Rect2(640, 720, 259, 245).has_point(p)
+    stone = stone or Rect2(675, 218, 190, 227).has_point(p)
+    stone = stone or Rect2(630, 350, 85, 95).has_point(p)
+    stone = stone or Rect2(170, 355, 222, 91).has_point(p)
+    stone = stone or Rect2(1148, 355, 222, 91).has_point(p)
+    if not stone:
+        return false
+    # The two ponds and the sculpture are solid even where broad paths overlap.
+    if _in_ellipse(p, Vector2(285, 568), 180.0, 90.0):
+        return false
+    if _in_ellipse(p, Vector2(1253, 568), 180.0, 90.0):
+        return false
+    # Sólo se bloquea el pedestal y su jardinera, sin proyectar la altura de las figuras sobre la escalera.
+    return not Geometry2D.is_point_in_polygon(p, monument_outline)
+
+func _in_ellipse(p: Vector2, center: Vector2, rx: float, ry: float) -> bool:
+    var d: Vector2 = p - center
+    return d.x * d.x / (rx * rx) + d.y * d.y / (ry * ry) <= 1.0
 
 func _build_markers() -> void:
     for point in POINTS:
@@ -141,7 +138,7 @@ func _nearby() -> Dictionary:
     return best
 
 func _interact() -> void:
-    if paused or hud.dialogue_open:
+    if leaving or paused or hud.dialogue_open:
         return
     var point: Dictionary = _nearby()
     var id: String = str(point.get("id", ""))
@@ -236,11 +233,12 @@ func _on_dialogue_selected(index: int) -> void:
                     ["Seguir tu camino"])
             return
         "finish":
+            leaving = true
             Game.progress["limbo_completed"] = true
             _play_sound("umbral", -8.0)
             _save_at_position()
             Game.enter_lujuria()
-            get_tree().change_scene_to_file("res://scenes/Transicion.tscn")
+            Game.cross_threshold("res://scenes/Transicion.tscn")
             return
     dialog_context = ""
     player.input_locked = false

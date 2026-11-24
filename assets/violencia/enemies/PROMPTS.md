@@ -1,0 +1,16 @@
+# Recursos derivados de los bocetos de Violencia
+
+Generados con la herramienta integrada de imágenes. Las hojas fuente tienen seis columnas y cuatro filas; el motor normaliza los fotogramas en bibliotecas SpriteFrames. El fondo del mastín se corrigió con una segunda edición para conservar transparencia.
+
+## centauro
+
+Convert the character in reference into a PRODUCTION 2D transparent sprite atlas. armored centaur, anatomically four horse legs human upper torso, bow spear dark crimson cloth. attack draws and releases bow facing the same direction as row. Preserve the design and detailed gray charcoal engraving with crimson accents. EXACTLY SIX equal columns and FOUR equal rows, no title, no labels, NO parchment, NO lines, genuine transparent empty background. Each cell complete figure fully inside with generous empty margins, same consistent scale and feet baseline. Rows from top: FRONT/down, LEFT profile, BACK/up showing back not face, RIGHT profile. Six columns: idle, walk left-foot-contact, walk opposite-foot-contact, preparation attack, actual attack, defeated lying down. All24poses only this one enemy. 1536x1024 canvas. Flat hand-drawn 2D game art for slightly elevated top-down game, not 3D render. Never crop any weapon hooves tail head; no trajectory arrows or indicators.
+
+## mastin
+
+Convert the character in reference into a PRODUCTION 2D transparent sprite atlas. lean black quadruped hound with long muzzle crimson cracks broken chain collar. preparation crouches low, attack leaps jaws open, defeat whole hound lying on side. Preserve the design and detailed gray charcoal engraving with crimson accents. EXACTLY SIX equal columns and FOUR equal rows, no title, no labels, NO parchment, NO lines, genuine transparent empty background. Each cell complete figure fully inside with generous empty margins, same consistent scale and feet baseline. Rows from top: FRONT/down, LEFT profile, BACK/up showing back not face, RIGHT profile. Six columns: idle, walk left-foot-contact, walk opposite-foot-contact, preparation attack, actual attack, defeated lying down. All24poses only this one enemy. 1536x1024 canvas. Flat hand-drawn 2D game art for slightly elevated top-down game, not 3D render. Never crop any weapon hooves tail head; no trajectory arrows or indicators.
+
+## ceniza
+
+Convert the character in reference into a PRODUCTION 2D transparent sprite atlas. gaunt ash armored soldier tattered cape, glowing ember sword and smoking censer. preparation raises sword, attack sweeps ember blade, defeat crumples into armor and ashes. Preserve the design and detailed gray charcoal engraving with crimson accents. EXACTLY SIX equal columns and FOUR equal rows, no title, no labels, NO parchment, NO lines, genuine transparent empty background. Each cell complete figure fully inside with generous empty margins, same consistent scale and feet baseline. Rows from top: FRONT/down, LEFT profile, BACK/up showing back not face, RIGHT profile. Six columns: idle, walk left-foot-contact, walk opposite-foot-contact, preparation attack, actual attack, defeated lying down. All24poses only this one enemy. 1536x1024 canvas. Flat hand-drawn 2D game art for slightly elevated top-down game, not 3D render. Never crop any weapon hooves tail head; no trajectory arrows or indicators.
+

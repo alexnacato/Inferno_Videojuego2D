@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+WARNING: No se pudo escribir el guardado en: user://inferno_save_v2.json
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] save_progress (res://scripts/game_state.gd:85)
+       [1] new_game (res://scripts/game_state.gd:56)
+       [2] _run (res://tests/gula_enemigos_smoke.gd:10)
+WARNING: No se pudo escribir el guardado en: user://inferno_save_v2.json
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] save_progress (res://scripts/game_state.gd:85)
+       [1] enter_gula (res://scripts/game_state.gd:138)
+       [2] _ready (res://scripts/gula.gd:46)
+       [3] _run (res://tests/gula_enemigos_smoke.gd:12)
+WARNING: No se pudo escribir el guardado en: user://inferno_save_v2.json
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] save_progress (res://scripts/game_state.gd:85)
+       [1] _save_state (res://scripts/gula.gd:364)
+       [2] _on_dialogue_selected (res://scripts/gula.gd:263)
+       [3] _select (res://scripts/hud.gd:340)
+       [4] _run (res://tests/gula_enemigos_smoke.gd:14)
+WARNING: No se pudo escribir el guardado en: user://inferno_save_v2.json
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] save_progress (res://scripts/game_state.gd:85)
+       [1] _save_state (res://scripts/gula.gd:364)
+       [2] _on_enemy_died (res://scripts/gula.gd:315)
+       [3] take_damage (res://scripts/gula_enemigo.gd:161)
+       [4] _run (res://tests/gula_enemigos_smoke.gd:68)
+WARNING: No se pudo escribir el guardado en: user://inferno_save_v2.json
+   at: push_warning (core/variant/variant_utility.cpp:1033)
+   GDScript backtrace (most recent call first):
+       [0] save_progress (res://scripts/game_state.gd:85)
+       [1] enter_gula (res://scripts/game_state.gd:138)
+       [2] _ready (res://scripts/gula.gd:46)
+       [3] _run (res://tests/gula_enemigos_smoke.gd:73)
+Gula enemigos: todas las comprobaciones pasaron

@@ -1,0 +1,26 @@
+[gd_scene load_steps=5 format=3]
+[ext_resource type="Script" path="res://scripts/violencia.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/violencia/flegetonte_terrazas.png" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/DanteLujuria.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="4"]
+[node name="Violencia" type="Node2D"]
+script = ExtResource("1")
+[node name="Mapa" type="Sprite2D" parent="."]
+texture = ExtResource("2")
+centered = false
+scale = Vector2(1.59116, 1.59116)
+z_index = -20
+[node name="Actores" type="Node2D" parent="."]
+y_sort_enabled = true
+[node name="Dante" parent="Actores" instance=ExtResource("3")]
+position = Vector2(1152, 1559)
+z_index = 0
+[node name="Camera2D" parent="Actores/Dante" index="2"]
+limit_right = 2304
+limit_bottom = 1728
+[node name="Enemigos" type="Node2D" parent="."]
+y_sort_enabled = true
+z_index = 1
+[node name="Proyectiles" type="Node2D" parent="."]
+z_index = 6
+[node name="HUD" parent="." instance=ExtResource("4")]

@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const WALK_SOLVER = preload("res://scripts/walk_solver.gd")
 ## Dante: movement in eight directions, dash, invulnerability, melee and luminous verse.
 signal health_changed(current: int, maximum: int)
 signal exhausted
@@ -10,6 +11,9 @@ const FRAME := Vector2(80, 96)
 @export var move_speed := 188.0
 @export var dash_speed := 430.0
 @export var max_health := 6
+@export var dash_duration := 0.18
+@export var dash_invulnerability := 0.28
+@export var dash_cooldown_duration := 0.85
 
 var health := 6
 var world
@@ -26,8 +30,13 @@ var last_safe_position := Vector2(723, 977)
 @onready var art: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
+    preload("res://scripts/enemy_contrast.gd").apply(art, true)
     _install_inputs()
     _create_animations()
+    if bool(Game.progress.get("dash_extended", false)):
+        dash_duration = 0.25
+        dash_invulnerability = 0.42
+        dash_cooldown_duration = 0.65
     health = max_health
     art.play("idle_down")
     health_changed.emit(health, max_health)
@@ -50,9 +59,9 @@ func _physics_process(delta: float) -> void:
     if Input.is_action_just_pressed("dodge") and dash_recharge <= 0.0:
         if axis.length_squared() > 0.001:
             facing = axis.normalized()
-        dash_time = 0.18
-        dash_recharge = 0.85
-        invulnerable = maxf(invulnerable, 0.28)
+        dash_time = dash_duration
+        dash_recharge = dash_cooldown_duration
+        invulnerable = maxf(invulnerable, dash_invulnerability)
         combat_action.emit("esquivar")
     if Input.is_action_just_pressed("strike") and strike_recharge <= 0.0:
         strike_recharge = 0.43
@@ -60,6 +69,7 @@ func _physics_process(delta: float) -> void:
         combat_action.emit("golpe")
         if is_instance_valid(world):
             world.melee_hit(global_position, facing)
+            preload("res://scripts/combat_fx.gd").burst(self, global_position, facing, 67.0, Color("baffed"))
     if Input.is_action_just_pressed("verse") and verse_recharge <= 0.0:
         verse_recharge = 0.62
         pose_time = 0.22
@@ -69,13 +79,20 @@ func _physics_process(delta: float) -> void:
     var wind := Vector2.ZERO
     if is_instance_valid(world):
         wind = world.wind_at(global_position)
-    velocity = facing * dash_speed if dash_time > 0.0 else axis * move_speed + wind
-    if is_instance_valid(world):
-        global_position = world.move_on_ground(global_position, velocity * delta, $CollisionShape2D.shape.radius)
-        if world.can_walk(global_position, $CollisionShape2D.shape.radius):
-            last_safe_position = global_position
-    else:
-        move_and_slide()
+    # El viento modifica la trayectoria sin quitarle el control al jugador.
+    # En reposo no arrastra a Dante contra paredes o enemigos.
+    var terrain_factor := 1.0
+    if is_instance_valid(world) and world.has_method("movement_factor"):
+        terrain_factor = float(world.movement_factor(global_position))
+    velocity = facing * dash_speed * terrain_factor if dash_time > 0.0 else axis * move_speed * terrain_factor + (wind * 0.36 if axis.length_squared() > 0.01 else Vector2.ZERO)
+    var displacement: Vector2 = velocity * delta
+    var steps: int = maxi(1, ceili(displacement.length() / 7.0))
+    var step: Vector2 = displacement / float(steps)
+    var can_enter: Callable = Callable(world, "can_occupy_hero").bind(dash_time > 0.0) if is_instance_valid(world) else Callable()
+    for i in range(steps):
+        global_position = WALK_SOLVER.step(global_position, step, can_enter) if is_instance_valid(world) else global_position + step
+    if is_instance_valid(world) and world.can_walk(global_position, 10.0):
+        last_safe_position = global_position
     if dash_time > 0.0:
         _play("dash")
     elif pose_time > 0.0:

@@ -71,6 +71,8 @@ func run_checks() -> void:
         for cell in cells:
             distance = minf(distance, (Vector2(cell)*10).distance_to(point["pos"]))
         check(distance <= float(point["radius"]), "Limbo: acceso " + str(point["id"]))
+    limbo.ambient.stop()
+    await create_timer(0.2).timeout
     limbo.queue_free()
     await process_frame
     var lujuria = load("res://scenes/Lujuria.tscn").instantiate()
@@ -84,7 +86,7 @@ func run_checks() -> void:
     await physics_frame
     await physics_frame
     lujuria.ambient.stop()
-    await create_timer(0.15).timeout
+    await create_timer(0.25).timeout
     lujuria.queue_free()
     await process_frame
     print("RESULTADO: %d fallos" % failures)

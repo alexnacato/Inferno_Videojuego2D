@@ -2,6 +2,7 @@ extends Control
 ## Menú principal autocontenido para el primer capítulo.
 
 func _ready() -> void:
+    Game.use_campaign()
     _build()
 
 func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
@@ -25,10 +26,6 @@ func _button(text_value: String) -> Button:
     b.text = text_value
     b.custom_minimum_size = Vector2(366, 54)
     b.add_theme_font_size_override("font_size", 17)
-    b.add_theme_color_override("font_color", Color("#252d33"))
-    b.add_theme_stylebox_override("normal", _panel_style(Color("#e4e1db"), Color("#747f86")))
-    b.add_theme_stylebox_override("hover", _panel_style(Color("#c4d0d5"), Color("#a5bcc5")))
-    b.add_theme_stylebox_override("pressed", _panel_style(Color("#acbdc4"), Color("#63777f")))
     return b
 
 func _build() -> void:
@@ -42,49 +39,101 @@ func _build() -> void:
     shade.color = Color(0.035, 0.045, 0.060, 0.78)
     add_child(shade)
     var frame: PanelContainer = PanelContainer.new()
-    frame.position = Vector2(378, 110)
-    frame.custom_minimum_size = Vector2(524, 508)
+    frame.custom_minimum_size = Vector2(524, 0)
     frame.add_theme_stylebox_override("panel", _panel_style(Color(0.90, 0.89, 0.86, 0.96), Color("#a7b0b5")))
-    add_child(frame)
-    var col: VBoxContainer = VBoxContainer.new()
-    col.add_theme_constant_override("separation", 15)
-    frame.add_child(col)
-    var small_title: Label = _label("D A N T E   A L I G H I E R I", 17, Color("#60676a"))
-    small_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(small_title)
-    var title: Label = _label("INFERNO", 51, Color("#1f272b"))
-    title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(title)
-    var subtitle: Label = _label("— E L   D E S C E N S O —", 21, Color("#596268"))
-    subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(subtitle)
-    col.add_child(HSeparator.new())
-    var chapter: Label = _label("ACTO I  ·  LIMBO Y LUJURIA", 17, Color("#343e44"))
-    chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(chapter)
-    var desc: Label = _label("Del silencio del Limbo al vendaval de Lujuria: cada elección cuenta.", 17, Color("#4a5154"))
-    desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(desc)
-    var start: Button = _button("COMENZAR UN NUEVO VIAJE")
-    col.add_child(start)
-    start.pressed.connect(_new_game)
-    var resume: Button = _button("CONTINUAR LA PARTIDA")
-    resume.disabled = not Game.has_save()
-    col.add_child(resume)
-    resume.pressed.connect(_resume)
-    var exit_button: Button = _button("SALIR DEL JUEGO")
-    col.add_child(exit_button)
-    exit_button.pressed.connect(func() -> void: get_tree().quit())
-    var small: Label = _label("GODOT 4  ·  VISTA CENITAL  ·  DOS CÍRCULOS", 13, Color("#626e73"))
-    small.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    col.add_child(small)
-    start.grab_focus()
+    var center := CenterContainer.new()
+    add_child(center)
+    center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    center.add_child(frame)
+    panel = frame
+    _show_main()
+
+var panel: PanelContainer
+var content: VBoxContainer
+const LEVELS := {
+    "I · LIMBO": "Limbo", "II · LUJURIA": "Lujuria", "III · GULA": "Gula",
+    "VII · VIOLENCIA": "Violencia", "IX · TRAICIÓN": "Traicion"
+}
+
+func _page(title: String) -> void:
+    if is_instance_valid(content):
+        panel.remove_child(content)
+        content.queue_free()
+    content = VBoxContainer.new()
+    content.add_theme_constant_override("separation", 10)
+    panel.add_child(content)
+    var heading := _label(title, 35, Color("#29201c"))
+    heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    content.add_child(heading)
+
+func _option(label: String, action: Callable) -> Button:
+    var button := _button(label)
+    content.add_child(button)
+    button.pressed.connect(action)
+    return button
+
+func _show_main() -> void:
+    _page("INFERNO · EL DESCENSO")
+    _option("Nueva partida", _confirm_new).grab_focus()
+    _option("Continuar partida anterior", _resume).disabled = not Game.has_save()
+    _option("Selección de niveles", _show_levels)
+    _option("Configuración", _show_settings)
+    _option("Salir", func() -> void: get_tree().quit())
+
+func _confirm_new() -> void:
+    if not Game.has_save():
+        _new_game()
+        return
+    _page("NUEVA PARTIDA")
+    content.add_child(_label("Se reemplazará el progreso de la campaña.", 17, Color("#29201c")))
+    _option("Volver", _show_main).grab_focus()
+    _option("Iniciar nueva campaña", _new_game)
+
+func _show_levels() -> void:
+    _page("SELECCIÓN DE NIVELES")
+    content.add_child(_label("Modo libre · guardado independiente", 17, Color("#29201c")))
+    for label in LEVELS:
+        var scene: String = LEVELS[label]
+        var button := _option(label, _start_level.bind(scene))
+        if scene == "Limbo":
+            button.grab_focus()
+    _option("Volver", _show_main)
+
+func _show_settings() -> void:
+    _page("CONFIGURACIÓN")
+    var mute := CheckButton.new()
+    mute.text = "Audio activado"
+    mute.button_pressed = Game.audio_enabled
+    mute.add_theme_color_override("font_color", Color("#29201c"))
+    mute.add_theme_color_override("font_hover_color", Color("#29201c"))
+    mute.add_theme_color_override("font_pressed_color", Color("#29201c"))
+    mute.add_theme_color_override("font_focus_color", Color("#29201c"))
+    content.add_child(mute)
+    mute.toggled.connect(func(enabled: bool) -> void: Game.set_audio(enabled, Game.audio_volume))
+    var label := _label("Volumen  %d%%" % roundi(Game.audio_volume * 100), 18, Color("#29201c"))
+    content.add_child(label)
+    var slider := HSlider.new()
+    slider.min_value = 0.0
+    slider.max_value = 1.0
+    slider.step = 0.01
+    slider.value = Game.audio_volume
+    slider.custom_minimum_size.y = 36.0
+    content.add_child(slider)
+    slider.value_changed.connect(func(value: float) -> void:
+        label.text = "Volumen  %d%%" % roundi(value * 100)
+        Game.set_audio(Game.audio_enabled, value))
+    _option("Volver", _show_main)
+    mute.grab_focus()
 
 func _new_game() -> void:
+    Game.use_campaign()
     Game.new_game()
     get_tree().change_scene_to_file("res://scenes/Limbo.tscn")
 
 func _resume() -> void:
-    Game.load_progress()
+    Game.use_campaign()
     get_tree().change_scene_to_file(Game.next_scene())
+
+func _start_level(scene: String) -> void:
+    Game.use_free_play()
+    get_tree().change_scene_to_file("res://scenes/%s.tscn" % scene)

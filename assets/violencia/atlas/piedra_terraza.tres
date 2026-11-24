@@ -1,0 +1,8 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/violencia/flegetonte_terrazas.png" id="1_map"]
+
+[resource]
+atlas = ExtResource("1_map")
+region = Rect2(813, 819, 53, 49)
+filter_clip = true

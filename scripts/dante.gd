@@ -1,4 +1,5 @@
 extends CharacterBody2D
+const WALK_SOLVER = preload("res://scripts/walk_solver.gd")
 ## Dante: controlador reutilizable de 8 direcciones con animación en 4 ángulos.
 signal interaction_requested
 signal hint_requested
@@ -21,6 +22,11 @@ var dash_cooldown_left: float = 0.0
 var action_time_left: float = 0.0
 var action_name: String = ""
 var blocked_attack_notified: bool = false
+var navigation: Node = null
+var lake_jump_elapsed: float = 0.0
+var lake_jump_from: Vector2 = Vector2.ZERO
+var lake_jump_to: Vector2 = Vector2.ZERO
+const LAKE_JUMP_DURATION: float = 0.43
 const DIRS = ["down", "left", "up", "right"]
 const COUNTS: Dictionary = {"idle": 4, "walk": 8, "dash": 4, "interact": 4, "ready": 4}
 const FRAME_WIDTH: int = 80
@@ -28,6 +34,7 @@ const FRAME_HEIGHT: int = 96
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
+    preload("res://scripts/enemy_contrast.gd").apply(sprite, true)
     _register_inputs()
     _build_animations()
     sprite.play("idle_up")
@@ -37,8 +44,27 @@ func _physics_process(delta: float) -> void:
     dash_cooldown_left = maxf(0.0, dash_cooldown_left - delta)
     action_time_left = maxf(0.0, action_time_left - delta)
     if input_locked:
+        if lake_jump_elapsed > 0.0:
+            global_position = lake_jump_from
+            lake_jump_elapsed = 0.0
+            sprite.position.y = -58.0
+            $Shadow.visible = true
         velocity = Vector2.ZERO
+        dash_time_left = 0.0
         _play("idle")
+        return
+
+    if lake_jump_elapsed > 0.0:
+        lake_jump_elapsed = minf(LAKE_JUMP_DURATION, lake_jump_elapsed + delta)
+        var fraction: float = lake_jump_elapsed / LAKE_JUMP_DURATION
+        global_position = lake_jump_from.lerp(lake_jump_to, fraction)
+        sprite.position.y = -58.0 - sin(fraction * PI) * 46.0
+        velocity = Vector2.ZERO
+        _play("dash")
+        if fraction >= 1.0:
+            lake_jump_elapsed = 0.0
+            sprite.position.y = -58.0
+            $Shadow.visible = true
         return
 
     var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
@@ -62,6 +88,18 @@ func _physics_process(delta: float) -> void:
     if Input.is_action_just_pressed("dash") and dash_cooldown_left <= 0.0 and dash_time_left <= 0.0:
         if input_vector.length_squared() > 0.01:
             last_motion = input_vector.normalized()
+        if is_instance_valid(navigation):
+            var landing: Vector2 = navigation.lake_jump_target(global_position, last_motion)
+            if landing != global_position:
+                lake_jump_from = global_position
+                lake_jump_to = landing
+                lake_jump_elapsed = 0.0001
+                dash_started.emit()
+                dash_cooldown_left = dash_cooldown
+                face = _direction(last_motion)
+                $Shadow.visible = false
+                _play("dash", true)
+                return
         dash_time_left = dash_duration
         dash_started.emit()
         dash_cooldown_left = dash_cooldown
@@ -77,7 +115,16 @@ func _physics_process(delta: float) -> void:
     else:
         velocity = input_vector * speed
         _play("walk" if input_vector.length_squared() > 0.005 else "idle")
-    move_and_slide()
+    if is_instance_valid(navigation):
+        # Substeps keep the dash from crossing a pond or a thin map boundary.
+        var displacement: Vector2 = velocity * delta
+        var steps: int = maxi(1, ceili(displacement.length() / 7.0))
+        var step: Vector2 = displacement / float(steps)
+        var can_enter: Callable = Callable(navigation, "can_walk").bind(10.0)
+        for i in range(steps):
+            global_position = WALK_SOLVER.step(global_position, step, can_enter)
+    else:
+        move_and_slide()
 
 func _start_action(name: String, seconds: float) -> void:
     action_name = name

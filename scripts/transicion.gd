@@ -41,7 +41,7 @@ func _ready() -> void:
     var continue_button: Button = Button.new()
     continue_button.text = "CONTINUAR A LUJURIA"
     continue_button.custom_minimum_size = Vector2(335, 55)
-    continue_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/Lujuria.tscn"))
+    continue_button.pressed.connect(func() -> void: Game.cross_threshold("res://scenes/Lujuria.tscn"))
     box.add_child(continue_button)
     continue_button.grab_focus()
 

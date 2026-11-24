@@ -14,7 +14,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="INFERNO: EL DESCENSO — LIMBO Y LUJURIA"
+config/name="INFERNO: EL DESCENSO — TRAICIÓN"
 run/main_scene="res://scenes/MenuPrincipal.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
@@ -29,6 +29,15 @@ window/size/viewport_height=720
 window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+
+[gui]
+
+theme/custom="res://themes/inferno.tres"
+
+[layer_names]
+
+2d_physics/layer_1="Dante"
+2d_physics/layer_2="Enemigos"
 
 [physics]
 

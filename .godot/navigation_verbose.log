@@ -1,0 +1,163 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+TextServer: Added interface "Dummy"
+TextServer: Added interface "ICU / HarfBuzz / Graphite (Built-in)"
+Using "default" pen tablet driver...
+
+TextServer: Primary interface set to: "ICU / HarfBuzz / Graphite (Built-in)".
+CORE API HASH: 2004498165
+EDITOR API HASH: 1696660745
+Loading resource: res://tests/navigation_smoke.gd remapped: res://tests/navigation_smoke.gd
+Completed load for: 'res://tests/navigation_smoke.gd' remapped 'res://tests/navigation_smoke.gd' at thread -1
+SceneTreeFTI: traversal method DEFAULT
+Loading resource: res://scripts/game_state.gd remapped: res://scripts/game_state.gd
+Completed load for: 'res://scripts/game_state.gd' remapped 'res://scripts/game_state.gd' at thread -1
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2582)
+Loaded builtin CA certificates
+Loading resource: res://scripts/walk_solver.gd remapped: res://scripts/walk_solver.gd
+Completed load for: 'res://scripts/walk_solver.gd' remapped 'res://scripts/walk_solver.gd' at thread -1
+Loading resource: res://scenes/Limbo.tscn remapped: res://scenes/Limbo.tscn
+Loading resource: res://scripts/limbo.gd remapped: res://scripts/limbo.gd
+Loading resource: res://scenes/HUD.tscn remapped: res://scenes/HUD.tscn
+Loading resource: res://scripts/hud.gd remapped: res://scripts/hud.gd
+Completed load for: 'res://scripts/hud.gd' remapped 'res://scripts/hud.gd' at thread -1
+Completed load for: 'res://scenes/HUD.tscn' remapped 'res://scenes/HUD.tscn' at thread -1
+Completed load for: 'res://scripts/limbo.gd' remapped 'res://scripts/limbo.gd' at thread -1
+Loading resource: res://assets/world/limbo_master.png remapped: res://assets/world/limbo_master.png
+Loading resource: res://.godot/imported/limbo_master.png-16ff66758b9c3f158565d95441e7b72e.ctex remapped: res://.godot/imported/limbo_master.png-16ff66758b9c3f158565d95441e7b72e.ctex
+Completed load for: 'res://assets/world/limbo_master.png' remapped 'res://assets/world/limbo_master.png' at thread -1
+Loading resource: res://scenes/Dante.tscn remapped: res://scenes/Dante.tscn
+Loading resource: res://scripts/dante.gd remapped: res://scripts/dante.gd
+Completed load for: 'res://scripts/dante.gd' remapped 'res://scripts/dante.gd' at thread -1
+Loading resource: res://scripts/shadow.gd remapped: res://scripts/shadow.gd
+Completed load for: 'res://scripts/shadow.gd' remapped 'res://scripts/shadow.gd' at thread -1
+Completed load for: 'res://scenes/Dante.tscn' remapped 'res://scenes/Dante.tscn' at thread -1
+Loading resource: res://scripts/particles.gd remapped: res://scripts/particles.gd
+Completed load for: 'res://scripts/particles.gd' remapped 'res://scripts/particles.gd' at thread -1
+Loading resource: res://scripts/gate_visual.gd remapped: res://scripts/gate_visual.gd
+Completed load for: 'res://scripts/gate_visual.gd' remapped 'res://scripts/gate_visual.gd' at thread -1
+Completed load for: 'res://scenes/Limbo.tscn' remapped 'res://scenes/Limbo.tscn' at thread -1
+Loading resource: res://assets/dante/idle.png remapped: res://assets/dante/idle.png
+Loading resource: res://.godot/imported/idle.png-f6f6333d086457d97b0c5220f12a78dd.ctex remapped: res://.godot/imported/idle.png-f6f6333d086457d97b0c5220f12a78dd.ctex
+Completed load for: 'res://assets/dante/idle.png' remapped 'res://assets/dante/idle.png' at thread -1
+Loading resource: res://assets/dante/walk.png remapped: res://assets/dante/walk.png
+Loading resource: res://.godot/imported/walk.png-f739eec787d0696aecc3e71e3ae6d1fd.ctex remapped: res://.godot/imported/walk.png-f739eec787d0696aecc3e71e3ae6d1fd.ctex
+Completed load for: 'res://assets/dante/walk.png' remapped 'res://assets/dante/walk.png' at thread -1
+Loading resource: res://assets/dante/dash.png remapped: res://assets/dante/dash.png
+Loading resource: res://.godot/imported/dash.png-6a71505c7f89970c4e19525be40bd0c6.ctex remapped: res://.godot/imported/dash.png-6a71505c7f89970c4e19525be40bd0c6.ctex
+Completed load for: 'res://assets/dante/dash.png' remapped 'res://assets/dante/dash.png' at thread -1
+Loading resource: res://assets/dante/interact.png remapped: res://assets/dante/interact.png
+Loading resource: res://.godot/imported/interact.png-e1b903b3c5bad4d8fafe21c8cdea7b45.ctex remapped: res://.godot/imported/interact.png-e1b903b3c5bad4d8fafe21c8cdea7b45.ctex
+Completed load for: 'res://assets/dante/interact.png' remapped 'res://assets/dante/interact.png' at thread -1
+Loading resource: res://assets/dante/ready.png remapped: res://assets/dante/ready.png
+Loading resource: res://.godot/imported/ready.png-18ec947be4b06abb28b4260dcaf85ebe.ctex remapped: res://.godot/imported/ready.png-18ec947be4b06abb28b4260dcaf85ebe.ctex
+Completed load for: 'res://assets/dante/ready.png' remapped 'res://assets/dante/ready.png' at thread -1
+Loading resource: res://assets/ui/retrato_dante.png remapped: res://assets/ui/retrato_dante.png
+Loading resource: res://.godot/imported/retrato_dante.png-790b3d94098aadfbd2e481e3c163c8ca.ctex remapped: res://.godot/imported/retrato_dante.png-790b3d94098aadfbd2e481e3c163c8ca.ctex
+Completed load for: 'res://assets/ui/retrato_dante.png' remapped 'res://assets/ui/retrato_dante.png' at thread -1
+Loading resource: res://scripts/minimap.gd remapped: res://scripts/minimap.gd
+Completed load for: 'res://scripts/minimap.gd' remapped 'res://scripts/minimap.gd' at thread -1
+Loading resource: res://assets/ui/retrato_virgilio.png remapped: res://assets/ui/retrato_virgilio.png
+Loading resource: res://.godot/imported/retrato_virgilio.png-499f7f0948d802084819261014333e2e.ctex remapped: res://.godot/imported/retrato_virgilio.png-499f7f0948d802084819261014333e2e.ctex
+Completed load for: 'res://assets/ui/retrato_virgilio.png' remapped 'res://assets/ui/retrato_virgilio.png' at thread -1
+Loading resource: res://assets/audio/limbo_ambiente.wav remapped: res://assets/audio/limbo_ambiente.wav
+Loading resource: res://.godot/imported/limbo_ambiente.wav-7024362bd32cd43743d8fbb4e2ebd3e4.sample remapped: res://.godot/imported/limbo_ambiente.wav-7024362bd32cd43743d8fbb4e2ebd3e4.sample
+Completed load for: 'res://assets/audio/limbo_ambiente.wav' remapped 'res://assets/audio/limbo_ambiente.wav' at thread -1
+Loading resource: res://assets/audio/esquiva.wav remapped: res://assets/audio/esquiva.wav
+Loading resource: res://.godot/imported/esquiva.wav-285912bb9413bb934c1854bf0203cf5f.sample remapped: res://.godot/imported/esquiva.wav-285912bb9413bb934c1854bf0203cf5f.sample
+Completed load for: 'res://assets/audio/esquiva.wav' remapped 'res://assets/audio/esquiva.wav' at thread -1
+Loading resource: res://scenes/Lujuria.tscn remapped: res://scenes/Lujuria.tscn
+Loading resource: res://scripts/lujuria.gd remapped: res://scripts/lujuria.gd
+Loading resource: res://scenes/LujuriaInteractivo.tscn remapped: res://scenes/LujuriaInteractivo.tscn
+Loading resource: res://scripts/lujuria_interactivo.gd remapped: res://scripts/lujuria_interactivo.gd
+Completed load for: 'res://scripts/lujuria_interactivo.gd' remapped 'res://scripts/lujuria_interactivo.gd' at thread -1
+Completed load for: 'res://scenes/LujuriaInteractivo.tscn' remapped 'res://scenes/LujuriaInteractivo.tscn' at thread -1
+Loading resource: res://scenes/LujuriaEnemigo.tscn remapped: res://scenes/LujuriaEnemigo.tscn
+Loading resource: res://scripts/lujuria_enemigo.gd remapped: res://scripts/lujuria_enemigo.gd
+Completed load for: 'res://scripts/lujuria_enemigo.gd' remapped 'res://scripts/lujuria_enemigo.gd' at thread -1
+Completed load for: 'res://scenes/LujuriaEnemigo.tscn' remapped 'res://scenes/LujuriaEnemigo.tscn' at thread -1
+Loading resource: res://scenes/LujuriaProyectil.tscn remapped: res://scenes/LujuriaProyectil.tscn
+Loading resource: res://scripts/lujuria_proyectil.gd remapped: res://scripts/lujuria_proyectil.gd
+Completed load for: 'res://scripts/lujuria_proyectil.gd' remapped 'res://scripts/lujuria_proyectil.gd' at thread -1
+Completed load for: 'res://scenes/LujuriaProyectil.tscn' remapped 'res://scenes/LujuriaProyectil.tscn' at thread -1
+Completed load for: 'res://scripts/lujuria.gd' remapped 'res://scripts/lujuria.gd' at thread -1
+Loading resource: res://assets/lujuria/world/lujuria_base.png remapped: res://assets/lujuria/world/lujuria_base.png
+Loading resource: res://.godot/imported/lujuria_base.png-44c21114b5a9b4cceda35114faf0ecc1.ctex remapped: res://.godot/imported/lujuria_base.png-44c21114b5a9b4cceda35114faf0ecc1.ctex
+Completed load for: 'res://assets/lujuria/world/lujuria_base.png' remapped 'res://assets/lujuria/world/lujuria_base.png' at thread -1
+Loading resource: res://scenes/DanteLujuria.tscn remapped: res://scenes/DanteLujuria.tscn
+Loading resource: res://scripts/lujuria_dante.gd remapped: res://scripts/lujuria_dante.gd
+Completed load for: 'res://scripts/lujuria_dante.gd' remapped 'res://scripts/lujuria_dante.gd' at thread -1
+Completed load for: 'res://scenes/DanteLujuria.tscn' remapped 'res://scenes/DanteLujuria.tscn' at thread -1
+Loading resource: res://scripts/lujuria_viento_visual.gd remapped: res://scripts/lujuria_viento_visual.gd
+Completed load for: 'res://scripts/lujuria_viento_visual.gd' remapped 'res://scripts/lujuria_viento_visual.gd' at thread -1
+Completed load for: 'res://scenes/Lujuria.tscn' remapped 'res://scenes/Lujuria.tscn' at thread -1
+Loading resource: res://assets/dante/idle.png remapped: res://assets/dante/idle.png
+Loading resource: res://.godot/imported/idle.png-f6f6333d086457d97b0c5220f12a78dd.ctex remapped: res://.godot/imported/idle.png-f6f6333d086457d97b0c5220f12a78dd.ctex
+Completed load for: 'res://assets/dante/idle.png' remapped 'res://assets/dante/idle.png' at thread -1
+Loading resource: res://assets/dante/walk.png remapped: res://assets/dante/walk.png
+Loading resource: res://.godot/imported/walk.png-f739eec787d0696aecc3e71e3ae6d1fd.ctex remapped: res://.godot/imported/walk.png-f739eec787d0696aecc3e71e3ae6d1fd.ctex
+Completed load for: 'res://assets/dante/walk.png' remapped 'res://assets/dante/walk.png' at thread -1
+Loading resource: res://assets/dante/dash.png remapped: res://assets/dante/dash.png
+Loading resource: res://.godot/imported/dash.png-6a71505c7f89970c4e19525be40bd0c6.ctex remapped: res://.godot/imported/dash.png-6a71505c7f89970c4e19525be40bd0c6.ctex
+Completed load for: 'res://assets/dante/dash.png' remapped 'res://assets/dante/dash.png' at thread -1
+Loading resource: res://assets/dante/ready.png remapped: res://assets/dante/ready.png
+Loading resource: res://.godot/imported/ready.png-18ec947be4b06abb28b4260dcaf85ebe.ctex remapped: res://.godot/imported/ready.png-18ec947be4b06abb28b4260dcaf85ebe.ctex
+Completed load for: 'res://assets/dante/ready.png' remapped 'res://assets/dante/ready.png' at thread -1
+Loading resource: res://assets/ui/retrato_dante.png remapped: res://assets/ui/retrato_dante.png
+Loading resource: res://.godot/imported/retrato_dante.png-790b3d94098aadfbd2e481e3c163c8ca.ctex remapped: res://.godot/imported/retrato_dante.png-790b3d94098aadfbd2e481e3c163c8ca.ctex
+Completed load for: 'res://assets/ui/retrato_dante.png' remapped 'res://assets/ui/retrato_dante.png' at thread -1
+Loading resource: res://assets/ui/retrato_virgilio.png remapped: res://assets/ui/retrato_virgilio.png
+Loading resource: res://.godot/imported/retrato_virgilio.png-499f7f0948d802084819261014333e2e.ctex remapped: res://.godot/imported/retrato_virgilio.png-499f7f0948d802084819261014333e2e.ctex
+Completed load for: 'res://assets/ui/retrato_virgilio.png' remapped 'res://assets/ui/retrato_virgilio.png' at thread -1
+Loading resource: res://assets/lujuria/npcs/virgilio_statue.png remapped: res://assets/lujuria/npcs/virgilio_statue.png
+Loading resource: res://.godot/imported/virgilio_statue.png-c575143c9da520a5e0b7fde5bba16db8.ctex remapped: res://.godot/imported/virgilio_statue.png-c575143c9da520a5e0b7fde5bba16db8.ctex
+Completed load for: 'res://assets/lujuria/npcs/virgilio_statue.png' remapped 'res://assets/lujuria/npcs/virgilio_statue.png' at thread -1
+Loading resource: res://assets/lujuria/npcs/paolo_statue.png remapped: res://assets/lujuria/npcs/paolo_statue.png
+Loading resource: res://.godot/imported/paolo_statue.png-7812ec4a43de200be05d13b29c5c2e69.ctex remapped: res://.godot/imported/paolo_statue.png-7812ec4a43de200be05d13b29c5c2e69.ctex
+Completed load for: 'res://assets/lujuria/npcs/paolo_statue.png' remapped 'res://assets/lujuria/npcs/paolo_statue.png' at thread -1
+Loading resource: res://assets/lujuria/npcs/francesca_statue.png remapped: res://assets/lujuria/npcs/francesca_statue.png
+Loading resource: res://.godot/imported/francesca_statue.png-dc331fa7af1476edef84802580fe2f73.ctex remapped: res://.godot/imported/francesca_statue.png-dc331fa7af1476edef84802580fe2f73.ctex
+Completed load for: 'res://assets/lujuria/npcs/francesca_statue.png' remapped 'res://assets/lujuria/npcs/francesca_statue.png' at thread -1
+Loading resource: res://assets/lujuria/npcs/sello.png remapped: res://assets/lujuria/npcs/sello.png
+Loading resource: res://.godot/imported/sello.png-d1258c0502026f6ed38b91c763d346b4.ctex remapped: res://.godot/imported/sello.png-d1258c0502026f6ed38b91c763d346b4.ctex
+Completed load for: 'res://assets/lujuria/npcs/sello.png' remapped 'res://assets/lujuria/npcs/sello.png' at thread -1
+Loading resource: res://assets/lujuria/npcs/gate.png remapped: res://assets/lujuria/npcs/gate.png
+Loading resource: res://.godot/imported/gate.png-9bd2ae807ae1ece811c15d7ee0cea844.ctex remapped: res://.godot/imported/gate.png-9bd2ae807ae1ece811c15d7ee0cea844.ctex
+Completed load for: 'res://assets/lujuria/npcs/gate.png' remapped 'res://assets/lujuria/npcs/gate.png' at thread -1
+Loading resource: res://assets/lujuria/audio/lujuria_ambiente.wav remapped: res://assets/lujuria/audio/lujuria_ambiente.wav
+Loading resource: res://.godot/imported/lujuria_ambiente.wav-27d971bbacd94a084f2c775b15fa8f7f.sample remapped: res://.godot/imported/lujuria_ambiente.wav-27d971bbacd94a084f2c775b15fa8f7f.sample
+Completed load for: 'res://assets/lujuria/audio/lujuria_ambiente.wav' remapped 'res://assets/lujuria/audio/lujuria_ambiente.wav' at thread -1
+Loading resource: res://assets/lujuria/audio/sello.wav remapped: res://assets/lujuria/audio/sello.wav
+Loading resource: res://.godot/imported/sello.wav-6e0d6c70f5cee1bb128548f2f273dd9d.sample remapped: res://.godot/imported/sello.wav-6e0d6c70f5cee1bb128548f2f273dd9d.sample
+Completed load for: 'res://assets/lujuria/audio/sello.wav' remapped 'res://assets/lujuria/audio/sello.wav' at thread -1
+Loading resource: res://assets/lujuria/enemies/minos/idle.png remapped: res://assets/lujuria/enemies/minos/idle.png
+Loading resource: res://.godot/imported/idle.png-9a6bbda8bd719511520cc82c236186c0.ctex remapped: res://.godot/imported/idle.png-9a6bbda8bd719511520cc82c236186c0.ctex
+Completed load for: 'res://assets/lujuria/enemies/minos/idle.png' remapped 'res://assets/lujuria/enemies/minos/idle.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/minos/walk.png remapped: res://assets/lujuria/enemies/minos/walk.png
+Loading resource: res://.godot/imported/walk.png-5e6fdf74860ebdd24a248f0160137da1.ctex remapped: res://.godot/imported/walk.png-5e6fdf74860ebdd24a248f0160137da1.ctex
+Completed load for: 'res://assets/lujuria/enemies/minos/walk.png' remapped 'res://assets/lujuria/enemies/minos/walk.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/minos/attack.png remapped: res://assets/lujuria/enemies/minos/attack.png
+Loading resource: res://.godot/imported/attack.png-1f80136bdd1d1598da293109b6e1c689.ctex remapped: res://.godot/imported/attack.png-1f80136bdd1d1598da293109b6e1c689.ctex
+Completed load for: 'res://assets/lujuria/enemies/minos/attack.png' remapped 'res://assets/lujuria/enemies/minos/attack.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/minos/hurt.png remapped: res://assets/lujuria/enemies/minos/hurt.png
+Loading resource: res://.godot/imported/hurt.png-4720d4ef2a738d3e47fabea6a4075ade.ctex remapped: res://.godot/imported/hurt.png-4720d4ef2a738d3e47fabea6a4075ade.ctex
+Completed load for: 'res://assets/lujuria/enemies/minos/hurt.png' remapped 'res://assets/lujuria/enemies/minos/hurt.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/minos/death.png remapped: res://assets/lujuria/enemies/minos/death.png
+Loading resource: res://.godot/imported/death.png-f6ab8d2a0b9cdd377bd868a6bdfc89e7.ctex remapped: res://.godot/imported/death.png-f6ab8d2a0b9cdd377bd868a6bdfc89e7.ctex
+Completed load for: 'res://assets/lujuria/enemies/minos/death.png' remapped 'res://assets/lujuria/enemies/minos/death.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/diablillo/idle.png remapped: res://assets/lujuria/enemies/diablillo/idle.png
+Loading resource: res://.godot/imported/idle.png-193cef724479b39f90ffba7760671151.ctex remapped: res://.godot/imported/idle.png-193cef724479b39f90ffba7760671151.ctex
+Completed load for: 'res://assets/lujuria/enemies/diablillo/idle.png' remapped 'res://assets/lujuria/enemies/diablillo/idle.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/diablillo/walk.png remapped: res://assets/lujuria/enemies/diablillo/walk.png
+Loading resource: res://.godot/imported/walk.png-5bd3dbfa2972ae4b303548081d75b0f9.ctex remapped: res://.godot/imported/walk.png-5bd3dbfa2972ae4b303548081d75b0f9.ctex
+Completed load for: 'res://assets/lujuria/enemies/diablillo/walk.png' remapped 'res://assets/lujuria/enemies/diablillo/walk.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/diablillo/attack.png remapped: res://assets/lujuria/enemies/diablillo/attack.png
+Loading resource: res://.godot/imported/attack.png-4d8d230914512db94d6146cde18f8b3f.ctex remapped: res://.godot/imported/attack.png-4d8d230914512db94d6146cde18f8b3f.ctex
+Completed load for: 'res://assets/lujuria/enemies/diablillo/attack.png' remapped 'res://assets/lujuria/enemies/diablillo/attack.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/diablillo/hurt.png remapped: res://assets/lujuria/enemies/diablillo/hurt.png
+Loading resource: res://.godot/imported/hurt.png-50d4261faa0056fc22d36309956876e5.ctex remapped: res://.godot/imported/hurt.png-50d4261faa0056fc22d36309956876e5.ctex
+Completed load for: 'res://assets/lujuria/enemies/diablillo/hurt.png' remapped 'res://assets/lujuria/enemies/diablillo/hurt.png' at thread -1
+Loading resource: res://assets/lujuria/enemies/diablillo/death.png remapped: res://assets/lujuria/enemies/diablillo/death.png
+Loading resource: res://.godot/imported/death.png-e61cf4baef724083922ab5e41ae23add.ctex remapped: res://.godot/imported/death.png-e61cf4baef724083922ab5e41ae23add.ctex
+Completed load for: 'res://assets/lujuria/enemies/diablillo/death.png' remapped 'res://assets/lujuria/enemies/diablillo/death.png' at thread -1
+Navegación: todas las comprobaciones pasaron

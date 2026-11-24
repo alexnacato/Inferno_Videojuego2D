@@ -20,7 +20,7 @@ func _ready() -> void:
     shade.color = Color(0.035, 0.020, 0.05, 0.86)
     add_child(shade)
     var panel: PanelContainer = PanelContainer.new()
-    panel.position = Vector2(302, 115)
+    panel.position = Vector2(302, 26)
     panel.custom_minimum_size = Vector2(676, 497)
     var style: StyleBoxFlat = StyleBoxFlat.new()
     style.bg_color = Color("#e8e3df")
@@ -31,7 +31,7 @@ func _ready() -> void:
     panel.add_theme_stylebox_override("panel", style)
     add_child(panel)
     var stack: VBoxContainer = VBoxContainer.new()
-    stack.add_theme_constant_override("separation", 19)
+    stack.add_theme_constant_override("separation", 12)
     panel.add_child(stack)
     stack.add_child(_label("INFERNO  ·  EL DESCENSO", 31))
     stack.add_child(HSeparator.new())
@@ -46,7 +46,7 @@ func _ready() -> void:
     var path_color: String
     if red > rig:
         path_title = "TU VÍA: LA MISERICORDIA"
-        path_text = "Tu compasión pesó más que tu severidad. Las almas a las que diste nombre y respiro caminarán contigo: en la Gula, los vientos se mostrarán menos crueles con quien comprendió al caído."
+        path_text = "Tu compasión pesó más que tu severidad. Las almas a las que diste nombre y respiro caminarán contigo: en la Gula, recordarás sus voces cuando el lodo dificulte cada paso."
         path_color = "#7b9e6b"
     elif rig > red:
         path_title = "TU VÍA: EL JUICIO"
@@ -72,13 +72,23 @@ func _ready() -> void:
         verdicts.add_child(row)
     stack.add_child(verdicts)
     stack.add_child(_label("Redención total: %d     Rigor total: %d" % [red, rig], 19))
-    stack.add_child(_label("PRÓXIMO CÍRCULO: GULA · PENDIENTE DE DESARROLLO", 15))
+    stack.add_child(_label("PRÓXIMO CÍRCULO: III · GULA", 15))
+    var actions: HBoxContainer = HBoxContainer.new()
+    actions.add_theme_constant_override("separation", 12)
+    stack.add_child(actions)
+    var continue_button: Button = Button.new()
+    continue_button.text = "CONTINUAR A GULA"
+    continue_button.custom_minimum_size = Vector2(287, 52)
+    continue_button.pressed.connect(func() -> void:
+        Game.enter_gula()
+        Game.cross_threshold("res://scenes/Gula.tscn"))
+    actions.add_child(continue_button)
     var menu: Button = Button.new()
     menu.text = "VOLVER AL MENÚ PRINCIPAL"
-    menu.custom_minimum_size = Vector2(340, 52)
+    menu.custom_minimum_size = Vector2(287, 52)
     menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))
-    stack.add_child(menu)
-    menu.grab_focus()
+    actions.add_child(menu)
+    continue_button.grab_focus()
 
 func _label(value: String, font_size: int) -> Label:
     var node: Label = Label.new()
