@@ -3,6 +3,13 @@ extends RefCounted
 
 const SLIDE_ANGLES := [-PI / 6.0, PI / 6.0, -PI / 3.0, PI / 3.0]
 
+static func clear_segment(origin: Vector2, target: Vector2, can_enter: Callable) -> bool:
+    var steps := maxi(1, ceili(origin.distance_to(target) / 5.0))
+    for i in range(steps + 1):
+        if not can_enter.call(origin.lerp(target, float(i) / float(steps))):
+            return false
+    return true
+
 static func step(origin: Vector2, displacement: Vector2, can_enter: Callable) -> Vector2:
     if displacement.length_squared() < 0.0001:
         return origin

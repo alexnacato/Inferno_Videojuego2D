@@ -4,20 +4,25 @@ uniform float outline_width = 1.5;
 uniform vec4 dark_edge : source_color = vec4(0.07, 0.025, 0.035, 0.96);
 uniform vec4 light_edge : source_color = vec4(1.0, 0.74, 0.43, 0.72);
 uniform bool hero_palette = false;
+uniform float pose_phase = 0.0;
+uniform float pose_strength = 0.0;
 varying vec4 tint;
 void vertex() {
     tint = COLOR;
 }
 void fragment() {
-    vec4 sample_color = texture(TEXTURE, UV);
+    vec2 uv = UV;
+    float wing = smoothstep(0.13, 0.50, abs(UV.x - 0.5));
+    uv.y += sin(pose_phase + wing * 2.0) * wing * (1.0 - UV.y) * pose_strength;
+    vec4 sample_color = texture(TEXTURE, uv);
     vec2 pixel = TEXTURE_PIXEL_SIZE * outline_width;
     float inner = 0.0;
     float outer = 0.0;
     for (int i = 0; i < 8; i++) {
         float angle = float(i) * 0.78539816;
         vec2 axis = vec2(cos(angle), sin(angle));
-        inner = max(inner, texture(TEXTURE, UV + axis * pixel).a);
-        outer = max(outer, texture(TEXTURE, UV + axis * pixel * 1.8).a);
+        inner = max(inner, texture(TEXTURE, uv + axis * pixel).a);
+        outer = max(outer, texture(TEXTURE, uv + axis * pixel * 1.8).a);
     }
     float gray = dot(sample_color.rgb, vec3(0.299,0.587,0.114));
     vec3 enhanced = mix(vec3(gray), sample_color.rgb, 1.24);

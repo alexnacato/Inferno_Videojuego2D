@@ -20,6 +20,12 @@ var face_name := "down"
 var dash_time := 0.0
 var dash_recharge := 0.0
 var strike_recharge := 0.0
+var step_travel := 0.0
+var verse_left := 0
+var verse_tick := 0.0
+var verse_aim := Vector2.DOWN
+var hurt_pose := 0.0
+var fall_pose := 0.0
 var verse_recharge := 0.0
 var invulnerable := 0.0
 var pose_time := 0.0
@@ -45,9 +51,16 @@ func _physics_process(delta: float) -> void:
     verse_recharge = maxf(0.0, verse_recharge - delta)
     invulnerable = maxf(0.0, invulnerable - delta)
     pose_time = maxf(0.0, pose_time - delta)
+    hurt_pose = maxf(0.0, hurt_pose - delta)
     if not control_enabled:
         velocity = Vector2.ZERO
-        _play("idle")
+        if health == 0:
+            fall_pose = minf(1.0, fall_pose + delta * 2.4)
+            art.rotation = fall_pose * 1.25
+            art.modulate.a = 1.0 - fall_pose * 0.6
+            _play("death")
+        else:
+            _play("idle")
         return
     var axis: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
     if axis.length_squared() > 0.005 and dash_time <= 0.0:
@@ -61,18 +74,27 @@ func _physics_process(delta: float) -> void:
         invulnerable = maxf(invulnerable, dash_invulnerability)
         combat_action.emit("esquivar")
     if Input.is_action_just_pressed("strike") and strike_recharge <= 0.0:
-        strike_recharge = 0.43
+        strike_recharge = 0.27
+        AudioManager.cue("golpe")
         pose_time = 0.23
         combat_action.emit("golpe")
         if is_instance_valid(world):
             world.melee_hit(global_position, facing)
-            preload("res://scripts/combat_fx.gd").burst(self, global_position, facing, 67.0, Color("baffed"))
+            var accent := Color(str(Game.CIRCLE_TINTS.get(AudioManager.chapter, "#baffed"))).lerp(Color.WHITE, 0.48)
+            preload("res://scripts/combat_fx.gd").burst(self, global_position, facing, 67.0, accent)
     if Input.is_action_just_pressed("verse") and verse_recharge <= 0.0:
-        verse_recharge = 0.62
+        verse_recharge = 0.44
+        verse_left = 3
+        verse_tick = 0.0
+        verse_aim = facing
         pose_time = 0.22
         combat_action.emit("verso")
-        if is_instance_valid(world):
-            world.spawn_projectile(global_position + facing * 26.0, facing, false, 2)
+    verse_tick -= delta
+    if verse_left > 0 and verse_tick <= 0.0 and is_instance_valid(world):
+        world.spawn_projectile(global_position, verse_aim.rotated(0.09 * (2 - verse_left)), false, 2 if verse_left == 3 else 1)
+        AudioManager.cue("verso")
+        verse_left -= 1
+        verse_tick = 0.065
     var wind := Vector2.ZERO
     if is_instance_valid(world):
         wind = world.wind_at(global_position)
@@ -86,32 +108,47 @@ func _physics_process(delta: float) -> void:
     var steps: int = maxi(1, ceili(displacement.length() / 7.0))
     var step: Vector2 = displacement / float(steps)
     var can_enter: Callable = Callable(world, "can_occupy_hero").bind(dash_time > 0.0) if is_instance_valid(world) else Callable()
+    var previous_position := global_position
     for i in range(steps):
         global_position = WALK_SOLVER.step(global_position, step, can_enter) if is_instance_valid(world) else global_position + step
     if is_instance_valid(world) and world.can_walk(global_position, 10.0):
         last_safe_position = global_position
+    if dash_time <= 0.0:
+        step_travel += previous_position.distance_to(global_position)
+        if step_travel >= 32.0:
+            step_travel = 0.0
+            AudioManager.cue("paso")
     if dash_time > 0.0:
         _play("dash")
+    elif hurt_pose > 0.0:
+        _play("hurt")
     elif pose_time > 0.0:
-        _play("ready")
-    elif axis.length_squared() > 0.01:
+        _play("attack")
+    elif global_position.distance_squared_to(previous_position) > 0.01:
         _play("walk")
     else:
         _play("idle")
     art.modulate = Color(1.0, 0.67, 0.86, 0.82) if invulnerable > 0.0 else Color.WHITE
 
-func take_damage(damage: int) -> void:
-    if invulnerable > 0.0 or health <= 0:
+func take_damage(damage: int, force: bool = false) -> void:
+    if (invulnerable > 0.0 and not force) or health <= 0:
         return
     health = maxi(health - maxi(damage, 0), 0)
+    hurt_pose = 0.18
+    AudioManager.cue("impacto")
     invulnerable = 0.85
     health_changed.emit(health, max_health)
     if health <= 0:
         control_enabled = false
+        verse_left = 0
+        AudioManager.cue("derrota")
         exhausted.emit()
 
 func restore(new_health: int, checkpoint: Vector2) -> void:
     health = clampi(new_health, 1, max_health)
+    fall_pose = 0.0
+    art.rotation = 0.0
+    art.modulate = Color.WHITE
     global_position = checkpoint
     last_safe_position = checkpoint
     invulnerable = 1.25

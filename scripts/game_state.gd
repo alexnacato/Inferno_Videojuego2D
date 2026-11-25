@@ -29,6 +29,12 @@ func _ready() -> void:
     audio_volume = clampf(float(settings.get_value("audio", "volume", 0.8)), 0.0, 1.0)
     _apply_audio()
 
+func _exit_tree() -> void:
+    preload("res://scripts/sprite_library.gd").cache.clear()
+    const ICE_ENEMY := "res://scripts/traicion_enemigo.gd"
+    if ResourceLoader.has_cached(ICE_ENEMY):
+        load(ICE_ENEMY).animation_cache.clear()
+
 func use_campaign() -> void:
     save_path = SAVE_PATH
     load_progress()
@@ -61,7 +67,7 @@ func default_progress() -> Dictionary:
         "alma_ugolino": "", "alma_bocca": "",
         "redencion": 0, "rigor": 0,
         "checkpoint": false, "pos_x": 769.0, "pos_y": 843.0,
-        "limbo_completed": false,
+        "limbo_completed": false, "limbo_transition_pending": false,
         "lujuria_started": false, "lujuria_intro_seen": false,
         "lujuria_seals": [], "lujuria_decisions": {},
         "lujuria_triggered": {}, "lujuria_defeated": {},
@@ -77,7 +83,7 @@ func default_progress() -> Dictionary:
         "gula_completed": false,
         "violencia_started": false, "violencia": {}, "dash_extended": false,
         "traicion_started": false, "traicion_intro_seen": false,
-        "traicion_seals": [], "traicion_decisions": {},
+        "traicion_seals": [], "traicion_decisions": {}, "traicion_defeated_enemies": [],
         "traicion_boss_spawned": false, "traicion_boss_defeated": false,
         "traicion_checkpoint_x": 724.0, "traicion_checkpoint_y": 1000.0,
         "traicion_completed": false
@@ -146,6 +152,8 @@ func decide(id: String, compassionate: bool) -> void:
     save_progress()
 
 func next_scene() -> String:
+    if bool(progress.get("limbo_transition_pending", false)):
+        return "res://scenes/Transicion.tscn"
     var circle: String = str(progress.get("circle", "limbo"))
     if circle == "traicion":
         return "res://scenes/FinTraicion.tscn" if bool(progress.get("traicion_completed", false)) else "res://scenes/Traicion.tscn"
@@ -171,6 +179,7 @@ func next_scene() -> String:
 
 func enter_lujuria() -> void:
     progress["limbo_completed"] = true
+    progress["limbo_transition_pending"] = false
     progress["lujuria_started"] = true
     progress["circle"] = "lujuria"
     save_progress()
@@ -198,6 +207,8 @@ func cross_threshold(scene_path: String) -> void:
     if crossing:
         return
     crossing = true
+    if scene_path.contains("/Fin") or scene_path.ends_with("/Transicion.tscn"):
+        AudioManager.cue("victoria")
     var tree := get_tree()
     var veil := CanvasLayer.new()
     veil.layer = 90

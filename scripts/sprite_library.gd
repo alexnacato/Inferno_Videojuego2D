@@ -31,13 +31,13 @@ static func dante() -> SpriteFrames:
     var sheet := preload("res://assets/dante/dante_poses_limpias.png")
     var source := sheet.get_image()
     var library := SpriteFrames.new()
-    for state in ["idle", "walk", "dash", "interact", "ready"]:
+    for state in ["idle", "walk", "dash", "interact", "ready", "attack", "hurt", "death"]:
         for row in range(4):
             var key: String = state + "_" + ["down", "left", "up", "right"][row]
             library.add_animation(key)
             library.set_animation_speed(key, 13.0 if state == "dash" else 10.0 if state == "walk" else 7.0)
             library.set_animation_loop(key, state in ["idle", "walk"])
-            var columns: Array = [0, 1, 2, 3] if state == "walk" else [1, 3] if state == "dash" else [0]
+            var columns: Array = [0, 1, 2, 3] if state == "walk" else [1, 3] if state == "dash" else [0, 3, 1, 0] if state == "attack" else [2, 0] if state == "hurt" else [1, 2] if state == "death" else [0]
             for column in columns:
                 library.add_frame(key, isolated(sheet, source, Rect2i(column * 80, row * 96, 80, 96)))
     return library

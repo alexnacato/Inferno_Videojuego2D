@@ -22,7 +22,8 @@ var dialogue_overlay: ColorRect
 var dialogue_portrait: TextureRect
 var dialogue_title: Label
 var dialogue_text: Label
-var dialogue_choices: HBoxContainer
+var dialogue_choices: VBoxContainer
+var resume_button: Button
 var pause_overlay: ColorRect
 var dialogue_open: bool = false
 var pause_open: bool = false
@@ -224,7 +225,18 @@ func _build() -> void:
     dialogue_overlay.color = Color(0.0, 0.0, 0.0, 0.27)
     dialogue_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
     root.add_child(dialogue_overlay)
-    dialogue_frame = _panel(dialogue_overlay, Vector2(145, 471), Vector2(990, 223), true)
+    var dialogue_margin := MarginContainer.new()
+    dialogue_overlay.add_child(dialogue_margin)
+    dialogue_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    dialogue_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    dialogue_margin.add_theme_constant_override("margin_left", 180)
+    dialogue_margin.add_theme_constant_override("margin_right", 180)
+    dialogue_margin.add_theme_constant_override("margin_bottom", 72)
+    var dialogue_dock := VBoxContainer.new()
+    dialogue_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    dialogue_dock.alignment = BoxContainer.ALIGNMENT_END
+    dialogue_margin.add_child(dialogue_dock)
+    dialogue_frame = _panel(dialogue_dock, Vector2.ZERO, Vector2(920, 0), true)
     var dialogue_row: HBoxContainer = HBoxContainer.new()
     dialogue_row.add_theme_constant_override("separation", 15)
     dialogue_frame.add_child(dialogue_row)
@@ -235,7 +247,7 @@ func _build() -> void:
     dialogue_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
     dialogue_row.add_child(dialogue_portrait)
     var dbox: VBoxContainer = VBoxContainer.new()
-    dbox.custom_minimum_size = Vector2(794, 0)
+    dbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     dbox.add_theme_constant_override("separation", 7)
     dialogue_row.add_child(dbox)
     dialogue_title = _label("VIRGILIO", 22, Color("#343a3f"))
@@ -243,10 +255,10 @@ func _build() -> void:
     dbox.add_child(HSeparator.new())
     dialogue_text = _label("", 18, Color("#272b2b"))
     dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-    dialogue_text.custom_minimum_size = Vector2(790, 77)
+    dialogue_text.custom_minimum_size.y = 55.0
     dbox.add_child(dialogue_text)
-    dialogue_choices = HBoxContainer.new()
-    dialogue_choices.add_theme_constant_override("separation", 18)
+    dialogue_choices = VBoxContainer.new()
+    dialogue_choices.add_theme_constant_override("separation", 7)
     dbox.add_child(dialogue_choices)
     dialogue_overlay.visible = false
 
@@ -255,19 +267,29 @@ func _build() -> void:
     pause_overlay.color = Color(0.0, 0.0, 0.0, 0.73)
     pause_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
     root.add_child(pause_overlay)
-    var pause_frame: PanelContainer = _panel(pause_overlay, Vector2(397, 169), Vector2(486, 390), true)
+    var pause_center := CenterContainer.new()
+    pause_overlay.add_child(pause_center)
+    pause_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    pause_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    var pause_frame := _panel(pause_center, Vector2.ZERO, Vector2(486, 0), true)
+    pause_frame.get_theme_stylebox("panel").set_content_margin_all(24)
     var pv: VBoxContainer = VBoxContainer.new()
-    pv.add_theme_constant_override("separation", 23)
+    pv.add_theme_constant_override("separation", 16)
     pause_frame.add_child(pv)
-    pv.add_child(_label("INFERNO  ·  EL DESCENSO", 27, Color("#27313a")))
-    pv.add_child(_label("EL VIAJE SE DETIENE", 17, Color("#52616b")))
-    var resume: Button = _button("REANUDAR  ·  ESC")
-    pv.add_child(resume)
-    resume.pressed.connect(func() -> void: pause_requested.emit())
+    var pause_title := _label("PARTIDA EN PAUSA", 28, Color("#27313a"))
+    pause_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    pv.add_child(pause_title)
+    resume_button = _button("REANUDAR  ·  ESC")
+    pv.add_child(resume_button)
+    resume_button.pressed.connect(func() -> void: pause_requested.emit())
     var menu: Button = _button("GUARDAR Y VOLVER AL MENÚ")
     pv.add_child(menu)
-    menu.pressed.connect(func() -> void: exit_to_menu_requested.emit())
-    pv.add_child(_label("Las decisiones morales se guardan automáticamente.", 15, Color("#4f5c61")))
+    menu.pressed.connect(func() -> void:
+        set_pause(false)
+        exit_to_menu_requested.emit())
+    var pause_note := _label("Las decisiones se guardan automáticamente.", 15, Color("#36444a"))
+    pause_note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    pv.add_child(pause_note)
     pause_overlay.visible = false
 
 func set_player(player_node: Node2D) -> void:
@@ -300,7 +322,10 @@ func toast(message: String, duration: float = 3.5) -> void:
 
 func show_dialogue(speaker: String, body: String, options: Array) -> void:
     dialogue_open = true
+    red_bar.get_parent().hide()
+    rig_bar.get_parent().hide()
     dialogue_overlay.visible = true
+    toast_frame.visible = false
     nearby_frame.visible = false
     dialogue_title.text = speaker
     if current_circle == "lujuria" and speaker.contains("VIRGILIO"):
@@ -326,10 +351,11 @@ func show_dialogue(speaker: String, body: String, options: Array) -> void:
     var choices: Array = options.duplicate()
     if choices.is_empty():
         choices.append("Continuar")
+    AudioManager.cue("alma" if speaker.contains("ALMA") else "sello")
     var index: int = 0
     for option in choices:
-        var b: Button = _button(("%d. " % (index + 1)) + str(option))
-        b.custom_minimum_size = Vector2(270 if choices.size() == 1 else 352, 47)
+        var b: Button = _button(str(option))
+        b.custom_minimum_size.y = 44.0
         dialogue_choices.add_child(b)
         var captured_index: int = index
         b.pressed.connect(func() -> void: _select(captured_index))
@@ -354,14 +380,29 @@ func _select(index: int) -> void:
     if not dialogue_open:
         return
     dialogue_open = false
+    red_bar.get_parent().show()
+    rig_bar.get_parent().show()
     dialogue_overlay.visible = false
+    if toast_remaining > 0.0:
+        toast_frame.visible = true
     option_selected.emit(index)
 
 func set_pause(value: bool) -> void:
+    AudioManager.cue("menu")
     pause_open = value
     pause_overlay.visible = value
+    get_tree().paused = value
     if value:
         nearby_frame.visible = false
+        resume_button.grab_focus()
+
+func _exit_tree() -> void:
+    if pause_open:
+        get_tree().paused = false
+
+func _input(event: InputEvent) -> void:
+    if event is InputEventKey and (Game.crossing or ((pause_open or dialogue_open) and event.keycode == KEY_SPACE)):
+        get_viewport().set_input_as_handled()
 
 func _toggle_objectives() -> void:
     if not pause_open and not dialogue_open:
@@ -395,6 +436,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 # Lujuria shares precisely the same parchment HUD, portraits and moral dialogue frame.
 func configure_chapter(circle: String, player_node: Node2D) -> void:
     current_circle = circle
+    AudioManager.enter(circle)
     set_player(player_node)
     minimap.mode = circle
     if circle in ["lujuria", "gula", "violencia", "traicion"]:

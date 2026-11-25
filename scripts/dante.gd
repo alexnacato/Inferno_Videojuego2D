@@ -13,6 +13,7 @@ signal dash_started
 @export var dash_cooldown: float = 0.80
 @export var combat_enabled: bool = false
 var input_locked: bool = false
+var step_travel := 0.0
 var max_health: int = 3
 var health: int = 3
 var face: String = "up"
@@ -111,6 +112,7 @@ func _physics_process(delta: float) -> void:
     else:
         velocity = input_vector * speed
         _play("walk" if input_vector.length_squared() > 0.005 else "idle")
+    var before := global_position
     if is_instance_valid(navigation):
         # Substeps keep the dash from crossing a pond or a thin map boundary.
         var displacement: Vector2 = velocity * delta
@@ -121,6 +123,10 @@ func _physics_process(delta: float) -> void:
             global_position = WALK_SOLVER.step(global_position, step, can_enter)
     else:
         move_and_slide()
+    step_travel += before.distance_to(global_position)
+    if step_travel >= 31.0:
+        step_travel = 0.0
+        AudioManager.cue("paso")
 
 func _start_action(name: String, seconds: float) -> void:
     action_name = name
