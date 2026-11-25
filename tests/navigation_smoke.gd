@@ -61,7 +61,7 @@ func _run() -> void:
     var boss_panel: Rect2 = lujuria.hud.boss_frame.get_global_rect()
     var chapter_panel: Rect2 = lujuria.hud.title_frame.get_global_rect()
     _check(boss_panel.end.y < 85.0 and boss_panel.size.x <= 320.0, "Lujuria: la barra del jefe ocupa demasiado mapa")
-    _check(chapter_panel.position.x >= 800.0 and chapter_panel.end.x < 1050.0 and not boss_panel.intersects(chapter_panel), "Lujuria: el título tapa la barra o el minimapa")
+    _check(root.get_visible_rect().encloses(chapter_panel) and chapter_panel.position.x > root.size.x * 0.5 and chapter_panel.size.y <= 32.0 and not boss_panel.intersects(chapter_panel), "Lujuria: el título tapa la barra o el minimapa")
     lujuria.hero.global_position = Vector2(716, 317)
     var boss: CharacterBody2D = lujuria._spawn_enemy("minos", "prueba_tamano", Vector2(716, 317))
     _check(boss.art.scale.x * 176.0 > 205.0 and boss.art.scale.x * 176.0 < 250.0, "Lujuria: tamaño de Minos desproporcionado")

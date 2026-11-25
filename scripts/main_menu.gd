@@ -6,15 +6,6 @@ func _ready() -> void:
     AudioManager.enter("")
     _build()
 
-func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
-    var s: StyleBoxFlat = StyleBoxFlat.new()
-    s.bg_color = bg
-    s.border_color = border
-    s.set_border_width_all(2)
-    s.set_corner_radius_all(9)
-    s.set_content_margin_all(14)
-    return s
-
 func _label(text_value: String, size_px: int, col: Color) -> Label:
     var l: Label = Label.new()
     l.text = text_value
@@ -38,12 +29,11 @@ func _build() -> void:
     add_child(art)
     art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     var shade: ColorRect = ColorRect.new()
-    shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    shade.color = Color(0.035, 0.045, 0.060, 0.78)
+    shade.color = Color(0.05, 0.068, 0.083, 0.71)
     add_child(shade)
+    shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     var frame: PanelContainer = PanelContainer.new()
     frame.custom_minimum_size = Vector2(524, 0)
-    frame.add_theme_stylebox_override("panel", _panel_style(Color(0.90, 0.89, 0.86, 0.96), Color("#a7b0b5")))
     var center := CenterContainer.new()
     add_child(center)
     center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -67,9 +57,10 @@ func _page(title: String, back_to: int = -1) -> void:
     content = VBoxContainer.new()
     content.add_theme_constant_override("separation", 10)
     panel.add_child(content)
-    var heading := _label(title, 35, Color("#29201c"))
-    heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    content.add_child(heading)
+    if not title.is_empty():
+        _line("I N F E R N O   ·   E L   D E S C E N S O", 13, Color("#58656c"))
+        _line(title, 29, Color("#26313a"))
+        content.add_child(HSeparator.new())
 
 func _option(label: String, action: Callable) -> Button:
     var button := _button(label)
@@ -78,7 +69,13 @@ func _option(label: String, action: Callable) -> Button:
     return button
 
 func _show_main(focus_index: int = -1) -> void:
-    _page("INFERNO · EL DESCENSO")
+    _page("")
+    _line("D A N T E   A L I G H I E R I", 16, Color("#59636b"))
+    _line("INFERNO", 48, Color("#222c33"))
+    _line("— E L   D E S C E N S O —", 21, Color("#54636d"))
+    content.add_child(HSeparator.new())
+    _line("LIMBO · LUJURIA · GULA · VIOLENCIA · TRAICIÓN", 15, Color("#34434b"))
+    _subtitle("Cada elección cuenta en el descenso hasta el hielo de Cocito.")
     var buttons := [
         _option("Nueva partida", _confirm_new),
         _option("Continuar partida anterior", _resume),
@@ -118,7 +115,10 @@ func _show_levels() -> void:
     _option("Volver", _show_main.bind(2))
 
 func _subtitle(value: String) -> void:
-    var subtitle := _label(value, 17, Color("#29201c"))
+    _line(value, 16, Color("#434e54"))
+
+func _line(value: String, size_px: int, tint: Color) -> void:
+    var subtitle := _label(value, size_px, tint)
     subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     content.add_child(subtitle)
@@ -130,7 +130,7 @@ func _show_settings() -> void:
     audio.pressed.connect(func() -> void:
         Game.set_audio(not Game.audio_enabled, Game.audio_volume)
         audio.text = "Audio · " + ("Activado" if Game.audio_enabled else "Silenciado"))
-    var label := _label("Volumen  %d%%" % roundi(Game.audio_volume * 100), 18, Color("#29201c"))
+    var label := _label("Volumen  %d%%" % roundi(Game.audio_volume * 100), 18, Color("#26313a"))
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     content.add_child(label)
     var slider := HSlider.new()

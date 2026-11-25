@@ -28,11 +28,9 @@ var pause_overlay: ColorRect
 var dialogue_open: bool = false
 var pause_open: bool = false
 var dash_bar: ProgressBar
-var chapter_title: Label
 var chapter_subtitle: Label
 var title_frame: PanelContainer
 var map_title: Label
-var control_text: Label
 var boss_frame: PanelContainer
 var boss_text: Label
 var boss_bar: ProgressBar
@@ -70,10 +68,7 @@ func _panel(parent: Node, pos: Vector2, dimensions: Vector2, parchment: bool = f
     p.position = pos
     p.size = dimensions
     p.custom_minimum_size = dimensions
-    if parchment:
-        p.add_theme_stylebox_override("panel", _style(Color(0.92, 0.90, 0.86, 0.98), Color("#66717a"), 9, 13))
-    else:
-        p.add_theme_stylebox_override("panel", _style(Color(0.055, 0.067, 0.083, 0.83), Color(0.59, 0.64, 0.67, 0.77), 9, 11))
+    p.theme_type_variation = &"PanelContainer" if parchment else &"HudPanel"
     parent.add_child(p)
     return p
 
@@ -90,13 +85,157 @@ func _progress() -> ProgressBar:
     bar.max_value = 3
     bar.value = 0
     bar.show_percentage = false
-    bar.custom_minimum_size = Vector2(133, 11)
+    bar.custom_minimum_size = Vector2(98, 7)
     bar.add_theme_stylebox_override("background", _style(Color("#171d23"), Color("#6f777a"), 2, 0))
     bar.add_theme_stylebox_override("fill", _style(Color("#b4c2cb"), Color("#b4c2cb"), 2, 0))
     return bar
 
 var objectives: PanelContainer
 var objective_button: Button
+var player_panel: PanelContainer
+var player_toggle: Button
+var player_details: VBoxContainer
+var life_detail: Label
+var red_summary: Label
+var rig_summary: Label
+var red_detail: Label
+var rig_detail: Label
+var controls_row: HFlowContainer
+
+# Place a container on one edge of the logical game viewport.
+func _dock(control: Control, preset: int, shift: Vector2) -> void:
+    control.reset_size()
+    control.set_anchors_and_offsets_preset(preset, Control.PRESET_MODE_MINSIZE)
+    control.offset_left += shift.x
+    control.offset_right += shift.x
+    control.offset_top += shift.y
+    control.offset_bottom += shift.y
+
+func _build_player() -> void:
+    var stack := VBoxContainer.new()
+    stack.add_theme_constant_override("separation", 6)
+    stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    root.add_child(stack)
+    _dock(stack, Control.PRESET_TOP_LEFT, Vector2(16, 16))
+
+    player_panel = _panel(stack, Vector2.ZERO, Vector2(0, 0), true)
+    var inner := VBoxContainer.new()
+    inner.add_theme_constant_override("separation", 5)
+    player_panel.add_child(inner)
+    var line := HBoxContainer.new()
+    line.add_theme_constant_override("separation", 7)
+    inner.add_child(line)
+
+    var avatar := PanelContainer.new()
+    avatar.custom_minimum_size = Vector2(32, 32)
+    avatar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    avatar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    avatar.add_theme_stylebox_override("panel", _style(Color("#232c34"), Color("#74848b"), 16, 1))
+    line.add_child(avatar)
+    var portrait := TextureRect.new()
+    portrait.texture = preload("res://assets/ui/retrato_dante.png")
+    portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+    portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    avatar.add_child(portrait)
+
+    line.add_child(_label("Dante", 15, Color("#25313a")))
+    heart_label = _label("", 15, Color("#8b3747"))
+    line.add_child(heart_label)
+    red_summary = _label("Red. 0", 12, Color("#315851"))
+    rig_summary = _label("Rig. 0", 12, Color("#68455b"))
+    line.add_child(red_summary)
+    line.add_child(rig_summary)
+    player_toggle = _button("H  ▾")
+    player_toggle.custom_minimum_size = Vector2.ZERO
+    player_toggle.add_theme_font_size_override("font_size", 12)
+    player_toggle.focus_mode = Control.FOCUS_NONE
+    player_toggle.tooltip_text = "Mostrar u ocultar el estado de Dante (H)"
+    player_toggle.pressed.connect(_toggle_player_details)
+    line.add_child(player_toggle)
+
+    player_details = VBoxContainer.new()
+    player_details.add_theme_constant_override("separation", 4)
+    inner.add_child(player_details)
+    player_details.add_child(HSeparator.new())
+    life_detail = _label("", 13, Color("#25313a"))
+    player_details.add_child(life_detail)
+    red_bar = _progress()
+    rig_bar = _progress()
+    red_detail = _stat_row("Redención", red_bar, Color("#416e65"))
+    rig_detail = _stat_row("Rigor", rig_bar, Color("#79546c"))
+    red_bar.value_changed.connect(_refresh_morality)
+    rig_bar.value_changed.connect(_refresh_morality)
+    set_health(3, 3)
+    _refresh_morality(0.0)
+    player_details.hide()
+
+    objective_button = _button("OBJETIVOS · TAB")
+    objective_button.custom_minimum_size = Vector2(0, 32)
+    objective_button.add_theme_font_size_override("font_size", 12)
+    objective_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+    objective_button.focus_mode = Control.FOCUS_NONE
+    stack.add_child(objective_button)
+    objective_button.pressed.connect(_toggle_objectives)
+    objectives = _panel(stack, Vector2.ZERO, Vector2.ZERO, true)
+    objectives.hide()
+    var objectives_list := VBoxContainer.new()
+    objectives_list.add_theme_constant_override("separation", 4)
+    objectives.add_child(objectives_list)
+    objectives_list.add_child(_label("OBJETIVO ACTUAL", 14, Color("#26313a")))
+    objectives_list.add_child(HSeparator.new())
+    shrine_label = _label("", 14, Color("#26313a"))
+    soul_label = _label("", 14, Color("#26313a"))
+    gate_label = _label("", 13, Color("#48585f"))
+    for item in [shrine_label, soul_label, gate_label]:
+        objectives_list.add_child(item)
+
+func _stat_row(label: String, bar: ProgressBar, tint: Color) -> Label:
+    var line := HBoxContainer.new()
+    line.add_theme_constant_override("separation", 8)
+    player_details.add_child(line)
+    var title := _label(label, 13, Color("#25313a"))
+    title.custom_minimum_size.x = 79
+    line.add_child(title)
+    bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+    bar.add_theme_stylebox_override("fill", _style(tint, tint, 3, 0))
+    line.add_child(bar)
+    var count := _label("0", 13, Color("#25313a"))
+    line.add_child(count)
+    return count
+
+func _refresh_morality(_value: float) -> void:
+    red_summary.text = "Red. %d" % int(red_bar.value)
+    rig_summary.text = "Rig. %d" % int(rig_bar.value)
+    red_detail.text = str(int(red_bar.value))
+    rig_detail.text = str(int(rig_bar.value))
+
+func _toggle_player_details() -> void:
+    if pause_open or dialogue_open or Game.crossing:
+        return
+    player_details.visible = not player_details.visible
+    player_toggle.text = "H  ▴" if player_details.visible else "H  ▾"
+
+func _set_control_legend(circle: String) -> void:
+    for child in controls_row.get_children():
+        controls_row.remove_child(child)
+        child.queue_free()
+    var entries := [["WASD", "Mover"], ["Espacio", "Esquivar / saltar" if circle == "limbo" else "Esquivar"]]
+    if circle != "limbo":
+        entries.append_array([["J", "Golpe"], ["K", "Verso"]])
+    entries.append_array([["E", "Interactuar"], ["Q", "Pista"], ["Esc", "Pausa"]])
+    for entry in entries:
+        var group := HBoxContainer.new()
+        group.add_theme_constant_override("separation", 5)
+        group.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        controls_row.add_child(group)
+        var key := PanelContainer.new()
+        key.theme_type_variation = &"Keycap"
+        key.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        group.add_child(key)
+        key.add_child(_label(entry[0], 11, Color("#26313a")))
+        group.add_child(_label(entry[1], 12, Color("#f0efea")))
 
 func _build() -> void:
     root = Control.new()
@@ -104,67 +243,16 @@ func _build() -> void:
     root.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(root)
 
-    var portrait_frame: PanelContainer = _panel(root, Vector2(17, 17), Vector2(104, 104))
-    portrait_frame.add_theme_stylebox_override("panel", _style(Color("#11171c"), Color("#b7b4ae"), 54, 5))
-    var portrait: TextureRect = TextureRect.new()
-    portrait.texture = load("res://assets/ui/retrato_dante.png")
-    portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-    portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    portrait_frame.add_child(portrait)
+    _build_player()
 
-    var name_frame: PanelContainer = _panel(root, Vector2(123, 18), Vector2(290, 108))
-    var vitals: VBoxContainer = VBoxContainer.new()
-    vitals.add_theme_constant_override("separation", 3)
-    name_frame.add_child(vitals)
-    vitals.add_child(_label("D A N T E   /   EL PEREGRINO", 16, Color("#e7e2d8")))
-    heart_label = _label("♥  ♥  ♥", 21, Color("#e7a5a0"))
-    vitals.add_child(heart_label)
-    var red_row: HBoxContainer = HBoxContainer.new()
-    red_row.add_child(_label("REDENCIÓN", 13, Color("#d8dedf")))
-    red_bar = _progress()
-    red_bar.max_value = 2.0
-    red_row.add_child(red_bar)
-    vitals.add_child(red_row)
-    var rig_row: HBoxContainer = HBoxContainer.new()
-    rig_row.add_child(_label("RIGOR         ", 13, Color("#c5d0d7")))
-    rig_bar = _progress()
-    rig_bar.max_value = 2.0
-    rig_row.add_child(rig_bar)
-    vitals.add_child(rig_row)
-
-    title_frame = _panel(root, Vector2(518, 17), Vector2(246, 64), true)
-    var title_stack: VBoxContainer = VBoxContainer.new()
-    title_stack.add_theme_constant_override("separation", 0)
-    title_frame.add_child(title_stack)
-    chapter_title = _label("I N F E R N O  ·  I", 13, Color("#545960"))
-    chapter_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    title_stack.add_child(chapter_title)
-    chapter_subtitle = _label("L I M B O", 24, Color("#242c30"))
+    title_frame = _panel(root, Vector2.ZERO, Vector2(0, 26), true)
+    title_frame.theme_type_variation = &"CircleBadge"
+    chapter_subtitle = _label("I · LIMBO", 13, Color("#25313a"))
     chapter_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-    title_stack.add_child(chapter_subtitle)
+    title_frame.add_child(chapter_subtitle)
+    _dock(title_frame, Control.PRESET_TOP_RIGHT, Vector2(-16, 16))
 
-    objectives = _panel(root, Vector2(19, 175), Vector2(292, 137), true)
-    objectives.hide()
-    objective_button = Button.new()
-    objective_button.text = "OBJETIVOS · TAB"
-    objective_button.custom_minimum_size = Vector2(172, 34)
-    objective_button.position = Vector2(19, 133)
-    objective_button.focus_mode = Control.FOCUS_NONE
-    root.add_child(objective_button)
-    objective_button.pressed.connect(_toggle_objectives)
-    var obj_v: VBoxContainer = VBoxContainer.new()
-    obj_v.add_theme_constant_override("separation", 4)
-    objectives.add_child(obj_v)
-    obj_v.add_child(_label("✦  OBJETIVO ACTUAL", 16, Color("#262d31")))
-    obj_v.add_child(HSeparator.new())
-    shrine_label = _label("◇  Santuario 0/3", 16, Color("#323a3d"))
-    soul_label = _label("◇  Almas 0/2", 16, Color("#323a3d"))
-    gate_label = _label("○  Umbral sellado", 14, Color("#59666c"))
-    obj_v.add_child(shrine_label)
-    obj_v.add_child(soul_label)
-    obj_v.add_child(gate_label)
-
-    var map_panel: PanelContainer = _panel(root, Vector2(1102, 575), Vector2(160, 132))
+    var map_panel: PanelContainer = _panel(root, Vector2.ZERO, Vector2(151, 0))
     var map_v: VBoxContainer = VBoxContainer.new()
     map_v.add_theme_constant_override("separation", 0)
     map_panel.add_child(map_v)
@@ -176,12 +264,26 @@ func _build() -> void:
     minimap.custom_minimum_size = Vector2(130, 97)
     minimap.mouse_filter = Control.MOUSE_FILTER_IGNORE
     map_v.add_child(minimap)
+    _dock(map_panel, Control.PRESET_BOTTOM_RIGHT, Vector2(-16, -14))
 
-    var control_panel: PanelContainer = _panel(root, Vector2(16, 661), Vector2(564, 47))
-    control_text = _label("WASD MOVER   ESPACIO ESQUIVA / SALTO   E USAR   Q PISTA   ESC PAUSA", 12, Color("#d9dfe0"))
-    control_panel.add_child(control_text)
+    var control_panel := _panel(root, Vector2.ZERO, Vector2.ZERO)
+    control_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+    control_panel.anchor_right = 0.54
+    control_panel.offset_left = 16
+    control_panel.offset_right = 0
+    control_panel.offset_top = -48
+    control_panel.offset_bottom = -14
+    control_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+    var control_margin := VBoxContainer.new()
+    control_panel.add_child(control_margin)
+    controls_row = HFlowContainer.new()
+    controls_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    controls_row.add_theme_constant_override("h_separation", 13)
+    controls_row.add_theme_constant_override("v_separation", 5)
+    control_margin.add_child(controls_row)
+    _set_control_legend("limbo")
 
-    var dash_frame: PanelContainer = _panel(root, Vector2(902, 660), Vector2(177, 49))
+    var dash_frame := _panel(root, Vector2.ZERO, Vector2(140, 0))
     var dash_v: VBoxContainer = VBoxContainer.new()
     dash_frame.add_child(dash_v)
     dash_v.add_child(_label("ESQUIVA", 12, Color("#dfe4e7")))
@@ -189,6 +291,7 @@ func _build() -> void:
     dash_bar.max_value = 1.0
     dash_bar.value = 1.0
     dash_v.add_child(dash_bar)
+    _dock(dash_frame, Control.PRESET_BOTTOM_RIGHT, Vector2(-176, -14))
 
     boss_frame = _panel(root, Vector2(478, 16), Vector2(300, 56))
     var boss_v: VBoxContainer = VBoxContainer.new()
@@ -204,12 +307,14 @@ func _build() -> void:
     boss_bar.custom_minimum_size = Vector2(260, 10)
     boss_bar.add_theme_stylebox_override("fill", _style(Color("#a56b9f"), Color("#d8adcf"), 2, 0))
     boss_v.add_child(boss_bar)
+    _dock(boss_frame, Control.PRESET_CENTER_TOP, Vector2(0, 16))
     boss_frame.visible = false
 
     nearby_frame = _panel(root, Vector2(390, 602), Vector2(500, 52), true)
     nearby_label = _label("E  ·  INTERACTUAR", 16, Color("#222a2e"))
     nearby_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     nearby_frame.add_child(nearby_label)
+    _dock(nearby_frame, Control.PRESET_CENTER_BOTTOM, Vector2(0, -67))
     nearby_frame.visible = false
 
     toast_frame = _panel(root, Vector2(390, 99), Vector2(500, 65))
@@ -218,6 +323,7 @@ func _build() -> void:
     toast_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     toast_frame.add_child(toast_label)
+    _dock(toast_frame, Control.PRESET_CENTER_TOP, Vector2(0, 84))
     toast_frame.visible = false
 
     dialogue_overlay = ColorRect.new()
@@ -236,7 +342,7 @@ func _build() -> void:
     dialogue_dock.mouse_filter = Control.MOUSE_FILTER_IGNORE
     dialogue_dock.alignment = BoxContainer.ALIGNMENT_END
     dialogue_margin.add_child(dialogue_dock)
-    dialogue_frame = _panel(dialogue_dock, Vector2.ZERO, Vector2(920, 0), true)
+    dialogue_frame = _panel(dialogue_dock, Vector2.ZERO, Vector2(0, 0), true)
     var dialogue_row: HBoxContainer = HBoxContainer.new()
     dialogue_row.add_theme_constant_override("separation", 15)
     dialogue_frame.add_child(dialogue_row)
@@ -272,13 +378,15 @@ func _build() -> void:
     pause_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     pause_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
     var pause_frame := _panel(pause_center, Vector2.ZERO, Vector2(486, 0), true)
-    pause_frame.get_theme_stylebox("panel").set_content_margin_all(24)
     var pv: VBoxContainer = VBoxContainer.new()
     pv.add_theme_constant_override("separation", 16)
     pause_frame.add_child(pv)
     var pause_title := _label("PARTIDA EN PAUSA", 28, Color("#27313a"))
     pause_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    pv.add_child(_label("I N F E R N O   ·   E L   D E S C E N S O", 13, Color("#59656b")))
+    (pv.get_child(0) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     pv.add_child(pause_title)
+    pv.add_child(HSeparator.new())
     resume_button = _button("REANUDAR  ·  ESC")
     pv.add_child(resume_button)
     resume_button.pressed.connect(func() -> void: pause_requested.emit())
@@ -296,7 +404,7 @@ func set_player(player_node: Node2D) -> void:
     minimap.player = player_node
 
 func set_state(data: Dictionary, souls: int, open_gate: bool) -> void:
-    heart_label.text = "♥  ♥  ♥"
+    set_health(3, 3)
     red_bar.max_value = 2.0
     rig_bar.max_value = 2.0
     red_bar.value = int(data.get("redencion", 0))
@@ -322,8 +430,6 @@ func toast(message: String, duration: float = 3.5) -> void:
 
 func show_dialogue(speaker: String, body: String, options: Array) -> void:
     dialogue_open = true
-    red_bar.get_parent().hide()
-    rig_bar.get_parent().hide()
     dialogue_overlay.visible = true
     toast_frame.visible = false
     nearby_frame.visible = false
@@ -380,8 +486,6 @@ func _select(index: int) -> void:
     if not dialogue_open:
         return
     dialogue_open = false
-    red_bar.get_parent().show()
-    rig_bar.get_parent().show()
     dialogue_overlay.visible = false
     if toast_remaining > 0.0:
         toast_frame.visible = true
@@ -401,6 +505,15 @@ func _exit_tree() -> void:
         get_tree().paused = false
 
 func _input(event: InputEvent) -> void:
+    # Tab normally moves focus before _unhandled_key_input can receive it.
+    if event is InputEventKey and not pause_open and not dialogue_open and not Game.crossing and event.keycode in [KEY_TAB, KEY_H]:
+        if event.pressed and not event.echo:
+            if event.keycode == KEY_H:
+                _toggle_player_details()
+            else:
+                _toggle_objectives()
+        get_viewport().set_input_as_handled()
+        return
     if event is InputEventKey and (Game.crossing or ((pause_open or dialogue_open) and event.keycode == KEY_SPACE)):
         get_viewport().set_input_as_handled()
 
@@ -426,10 +539,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             _select(1)
             get_viewport().set_input_as_handled()
         return
-    if ke.keycode == KEY_TAB:
-        _toggle_objectives()
-        get_viewport().set_input_as_handled()
-    elif ke.keycode == KEY_ESCAPE:
+    if ke.keycode == KEY_ESCAPE:
         pause_requested.emit()
         get_viewport().set_input_as_handled()
 
@@ -439,33 +549,19 @@ func configure_chapter(circle: String, player_node: Node2D) -> void:
     AudioManager.enter(circle)
     set_player(player_node)
     minimap.mode = circle
-    if circle in ["lujuria", "gula", "violencia", "traicion"]:
-        title_frame.position = Vector2(825, 17)
-        title_frame.custom_minimum_size = Vector2(180, 46)
-        title_frame.size = Vector2(180, 46)
-        chapter_title.visible = false
-        chapter_subtitle.text = "II · LUJURIA" if circle == "lujuria" else "III · GULA" if circle == "gula" else "VII · VIOLENCIA" if circle == "violencia" else "IX · TRAICIÓN"
-        chapter_subtitle.add_theme_font_size_override("font_size", 17)
-        map_title.text = "✧  PLANO DE LUJURIA" if circle == "lujuria" else "✧  PLANO DE GULA" if circle == "gula" else "✧  PLANO DE VIOLENCIA" if circle == "violencia" else "✧  PLANO DE COCITO"
-        control_text.text = "WASD MOVER   ESPACIO ESQUIVA   J GOLPE   K VERSO   E HABLAR   Q PISTA   ESC PAUSA"
-        red_bar.max_value = 9.0
-        rig_bar.max_value = 9.0
-    else:
-        title_frame.position = Vector2(518, 17)
-        title_frame.custom_minimum_size = Vector2(246, 64)
-        title_frame.size = Vector2(246, 64)
-        chapter_title.visible = true
-        chapter_title.text = "I N F E R N O  ·  I"
-        chapter_subtitle.text = "L I M B O"
-        chapter_subtitle.add_theme_font_size_override("font_size", 24)
-        map_title.text = "✧  PLANO DEL LIMBO"
-        control_text.text = "WASD MOVER   ESPACIO ESQUIVA / SALTO   E USAR   Q PISTA   ESC PAUSA"
-        red_bar.max_value = 2.0
-        rig_bar.max_value = 2.0
+    var titles := {"limbo": "I · LIMBO", "lujuria": "II · LUJURIA", "gula": "III · GULA",
+        "violencia": "VII · VIOLENCIA", "traicion": "IX · TRAICIÓN"}
+    chapter_subtitle.text = titles.get(circle, titles["limbo"])
+    _dock(title_frame, Control.PRESET_TOP_RIGHT, Vector2(-16, 16))
+    map_title.text = "PLANO"
+    _set_control_legend(circle)
+    red_bar.max_value = 2.0 if circle == "limbo" else 9.0
+    rig_bar.max_value = red_bar.max_value
     minimap.queue_redraw()
 
 func set_health(current: int, maximum: int) -> void:
-    heart_label.text = "♥ ".repeat(maxi(0, current)) + "♡ ".repeat(maxi(0, maximum - current))
+    heart_label.text = "♥".repeat(maxi(0, current)) + "♡".repeat(maxi(0, maximum - current)) if maximum <= 6 else "♥ %d/%d" % [current, maximum]
+    life_detail.text = "Vida  %d / %d" % [current, maximum]
 
 func set_lujuria_state(data: Dictionary, seals_count: int, souls: int, boss_down: bool) -> void:
     red_bar.max_value = maxf(9.0, float(data.get("redencion", 0)))
@@ -517,11 +613,8 @@ func set_violencia_state(data: Dictionary, seals_count: int, souls: int, boss_do
 
 func set_boss_health(current: int, maximum: int) -> void:
     boss_frame.visible = current > 0
-    if current_circle == "violencia":
-        toast_frame.position = Vector2(390, 99)
     boss_bar.max_value = maxf(1.0, float(maximum))
     boss_bar.value = maxf(0.0, float(current))
 
 func hide_boss() -> void:
     boss_frame.visible = false
-    toast_frame.position = Vector2(390, 99)

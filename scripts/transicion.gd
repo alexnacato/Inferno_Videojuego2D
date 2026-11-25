@@ -11,25 +11,18 @@ func _ready() -> void:
 
     var veil: ColorRect = ColorRect.new()
     veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    veil.color = Color(0.055, 0.040, 0.080, 0.83)
+    veil.color = Color(0.05, 0.068, 0.083, 0.76)
     add_child(veil)
 
     var panel: PanelContainer = PanelContainer.new()
     panel.custom_minimum_size.x = 722.0
-    var style: StyleBoxFlat = StyleBoxFlat.new()
-    style.bg_color = Color("#e6e2dc")
-    style.border_color = Color("#7b3f9e")
-    style.set_border_width_all(3)
-    style.set_corner_radius_all(11)
-    style.set_content_margin_all(24)
-    panel.add_theme_stylebox_override("panel", style)
     var center := CenterContainer.new()
     add_child(center)
     center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     center.add_child(panel)
 
     var box: VBoxContainer = VBoxContainer.new()
-    box.add_theme_constant_override("separation", 20)
+    box.add_theme_constant_override("separation", 12)
     panel.add_child(box)
     box.add_child(_label("I N F E R N O   ·   E L   D E S C E N S O", 19))
     box.add_child(HSeparator.new())
