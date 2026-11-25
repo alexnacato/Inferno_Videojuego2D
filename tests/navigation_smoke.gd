@@ -34,6 +34,10 @@ func _run() -> void:
     limbo.player._physics_process(0.016)
     Input.action_release("dash")
     _check(limbo.player.lake_jump_elapsed > 0.0, "Limbo: Espacio no inicia el salto contextual")
+    limbo.player._physics_process(0.16)
+    limbo._save_at_position()
+    var saved: Dictionary = root.get_node("Game").progress
+    _check(Vector2(saved["pos_x"], saved["pos_y"]) == Vector2(285, 450), "Limbo: guardar durante el salto debe conservar la orilla de salida")
     for i in range(30):
         limbo.player._physics_process(0.016)
     _check(limbo.player.global_position.distance_to(Vector2(285, 675)) < 1.0, "Limbo: el salto no aterriza sobre el camino")
@@ -60,7 +64,7 @@ func _run() -> void:
     _check(chapter_panel.position.x >= 800.0 and chapter_panel.end.x < 1050.0 and not boss_panel.intersects(chapter_panel), "Lujuria: el título tapa la barra o el minimapa")
     lujuria.hero.global_position = Vector2(716, 317)
     var boss: CharacterBody2D = lujuria._spawn_enemy("minos", "prueba_tamano", Vector2(716, 317))
-    _check(boss.art.scale.x * 176.0 > 145.0 and boss.art.scale.x * 176.0 < 180.0, "Lujuria: tamaño de Minos desproporcionado")
+    _check(boss.art.scale.x * 176.0 > 205.0 and boss.art.scale.x * 176.0 < 250.0, "Lujuria: tamaño de Minos desproporcionado")
     _check(boss.global_position.distance_to(lujuria.hero.global_position) >= boss.body_radius + 10.0, "Lujuria: Minos aparece encima de Dante")
     boss.queue_free()
     await process_frame
@@ -85,6 +89,7 @@ func _run() -> void:
         if str(marker.kind) in ["paolo", "francesca", "virgilio"]:
             _check(marker.art.visible and marker.art.texture != null and marker.art.scale.y * 1536.0 > 115.0, "Lujuria: personaje sin figura detallada: " + str(marker.uid))
             _check(marker.art.texture.resource_path.ends_with("_statue.png"), "Lujuria: el personaje no usa el diseño de estatua: " + str(marker.uid))
+            _check(not lujuria.can_walk(marker.global_position, 5.0), "Lujuria: enemigos y proyectiles atraviesan a " + str(marker.uid))
             _check(not lujuria.can_occupy_hero(marker.global_position), "Lujuria: Dante atraviesa a " + str(marker.uid))
     for speaker in ["VIRGILIO · GUÍA DE DANTE", "PAOLO · ALMA DE LA LUJURIA", "FRANCESCA · ALMA DE LA LUJURIA"]:
         lujuria.hud.show_dialogue(speaker, "", ["Continuar"])

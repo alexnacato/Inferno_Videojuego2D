@@ -3,13 +3,13 @@ extends Node2D
 const HUD_SCENE: PackedScene = preload("res://scenes/HUD.tscn")
 const HOTSPOT_SCRIPT: Script = preload("res://scripts/hotspot.gd")
 const POINTS = [
-    {"id":"virgilio", "name":"HABLAR CON VIRGILIO", "pos":Vector2(936, 886), "radius":112.0, "kind":"guide"},
+    {"id":"virgilio", "name":"HABLAR CON VIRGILIO", "pos":Vector2(946, 958), "radius":112.0, "kind":"guide"},
     {"id":"inscripcion", "name":"LEER INSCRIPCIÓN", "pos":Vector2(770, 850), "radius":77.0, "kind":"altar"},
     {"id":"altar_memoria", "name":"SANTUARIO DE LA MEMORIA", "pos":Vector2(282, 362), "radius":112.0, "kind":"altar"},
     {"id":"altar_saber", "name":"SANTUARIO DEL SABER", "pos":Vector2(1255, 362), "radius":112.0, "kind":"altar"},
     {"id":"altar_compasion", "name":"SANTUARIO DE LA COMPASIÓN", "pos":Vector2(770, 620), "radius":110.0, "kind":"altar"},
-    {"id":"alma_elio", "name":"ESCUCHAR A ELIO", "pos":Vector2(67, 633), "radius":115.0, "kind":"soul"},
-    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1092, 287), "radius":135.0, "kind":"soul"},
+    {"id":"alma_elio", "name":"ESCUCHAR A ELIO", "pos":Vector2(65, 750), "radius":115.0, "kind":"soul"},
+    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1093, 406), "radius":135.0, "kind":"soul"},
     {"id":"puerta", "name":"PUERTA DEL DESCENSO", "pos":Vector2(769, 236), "radius":96.0, "kind":"gate"}
 ]
 const ORDER = ["altar_memoria", "altar_saber", "altar_compasion"]
@@ -25,7 +25,6 @@ var focused_id: String = ""
 var dialog_context: String = ""
 var paused: bool = false
 var leaving := false
-var ambient: AudioStreamPlayer
 var monument_outline: PackedVector2Array = PackedVector2Array([
     Vector2(674, 491), Vector2(860, 491), Vector2(915, 527),
     Vector2(943, 568), Vector2(926, 605), Vector2(859, 639),
@@ -33,11 +32,12 @@ var monument_outline: PackedVector2Array = PackedVector2Array([
 ])
 
 func _ready() -> void:
+    preload("res://scripts/foreground.gd").install($Background, player, PackedVector2Array([Vector2(218,211),Vector2(234,170),Vector2(252,158),Vector2(268,137),Vector2(284,132),Vector2(295,145),Vector2(302,157),Vector2(315,160),Vector2(336,206),Vector2(347,224),Vector2(320,236),Vector2(240,237)]), 232.0)
     player.navigation = self
     _build_markers()
     hud = HUD_SCENE.instantiate()
     add_child(hud)
-    hud.set_player(player)
+    hud.configure_chapter("limbo", player)
     hud.option_selected.connect(_on_dialogue_selected)
     hud.pause_requested.connect(_toggle_pause)
     hud.exit_to_menu_requested.connect(_back_to_menu)
@@ -48,7 +48,7 @@ func _ready() -> void:
     player.combat_enabled = false
     var saved_position: Vector2 = Vector2(float(Game.progress["pos_x"]), float(Game.progress["pos_y"])) if bool(Game.progress["checkpoint"]) else Vector2(769, 834)
     player.global_position = saved_position if can_walk(saved_position, 10.0) else Vector2(769, 834)
-    _build_ambient()
+
     _refresh()
     if not bool(Game.progress["intro_seen"]):
         _talk("intro", "VIRGILIO · GUÍA DE DANTE", "Éste es el Limbo. No escucharás gritos, sino el eco de quienes vivieron con virtud y sin esperanza. Recuerda, comprende y compadece. Solo así cederá el umbral.", ["Comenzar el recorrido"])
@@ -180,13 +180,13 @@ func _talk_to_soul(id: String) -> void:
     if id == "alma_elio":
         _talk(id, "ELIO · ALMA DEL LIMBO",
             "Fui maestro en Florencia: enseñé a pensar a quienes hoy son jueces y poetas, y ninguno repite mi nombre. Junto a mí espera una piedra sin inscribir, preparada para mi memoria. Dime, peregrino: ¿qué hago con ella?",
-            ["Inscribir su nombre y contar su historia · Redención",
-             "Dejar la piedra en blanco: la obra vale más que la fama · Rigor"])
+            ["Inscribir su nombre y contar su historia",
+             "Dejar la piedra en blanco: la obra vale más que la fama"])
     else:
         _talk(id, "LIVIA · ALMA DEL LIMBO",
             "Cuidé huérfanos durante la peste y enterré a más de los que salvé. Nadie reza por ellos ni por mí, y yo sé sus nombres: los recuerdo todos. ¿Valió la pena amar a los que no pudo salvar del todo?",
-            ["Nombrar a sus huérfanos: su amor no se perdió · Redención",
-             "El consuelo sin esperanza no borra el dolor · Rigor"])
+            ["Nombrar a sus huérfanos: su amor no se perdió",
+             "El consuelo sin esperanza no borra el dolor"])
 
 func _handle_door() -> void:
     if not Game.gate_unlocked():
@@ -235,9 +235,9 @@ func _on_dialogue_selected(index: int) -> void:
         "finish":
             leaving = true
             Game.progress["limbo_completed"] = true
+            Game.progress["limbo_transition_pending"] = true
             _play_sound("umbral", -8.0)
             _save_at_position()
-            Game.enter_lujuria()
             Game.cross_threshold("res://scenes/Transicion.tscn")
             return
     dialog_context = ""
@@ -271,7 +271,7 @@ func _refresh() -> void:
             marker.set("completed", false)
 
 func _save_at_position() -> void:
-    Game.save_position(player.global_position)
+    Game.save_position(player.lake_jump_from if player.lake_jump_elapsed > 0.0 else player.global_position)
 
 func _toast(message: String, duration: float = 3.5) -> void:
     hud.toast(message, duration)
@@ -288,21 +288,12 @@ func _back_to_menu() -> void:
     paused = false
     get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn")
 
-func _build_ambient() -> void:
-    ambient = AudioStreamPlayer.new()
-    var audio: AudioStream = load("res://assets/audio/limbo_ambiente.wav") as AudioStream
-    ambient.stream = audio
-    ambient.volume_db = -24.0
-    add_child(ambient)
-    if audio != null:
-        ambient.finished.connect(func() -> void: ambient.play())
-        ambient.play()
-
 func _play_sound(id: String, volume: float = -12.0) -> void:
     var stream: AudioStream = load("res://assets/audio/" + id + ".wav") as AudioStream
     if stream == null:
         return
     var sound: AudioStreamPlayer = AudioStreamPlayer.new()
+    sound.bus = "SFX"
     sound.stream = stream
     sound.volume_db = volume
     add_child(sound)

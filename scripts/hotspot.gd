@@ -5,12 +5,29 @@ var completed: bool = false
 var hovered: bool = false
 var t: float = 0.0
 var accent: Color = Color("#9aa0a6")
+var art: Sprite2D
+const VISUAL = preload("res://scripts/interaction_visual.gd")
+
+func _ready() -> void:
+    if kind == "guide":
+        art = VISUAL.guide_sprite(self)
+    elif kind == "soul":
+        art = Sprite2D.new()
+        art.texture = preload("res://scripts/sprite_library.gd").frame("res://assets/violencia/almas_virgilio.png", 0, 0, 2, 1, Vector2i(80,128))
+        art.position.y = -72.0
+        add_child(art)
+        VISUAL.spirit(art, false)
 
 func _process(delta: float) -> void:
     t += delta
+    if is_instance_valid(art):
+        art.position.y = -74.0 + sin(t * 1.7) * 5.0
+        art.modulate.a = 0.65 if completed else 1.0
     queue_redraw()
 
 func _draw() -> void:
+    if completed:
+        VISUAL.seen(self)
     var pulse: float = sin(t * 2.1) * 0.5 + 0.5
     var col: Color = accent.lightened(0.14)
     if kind == "soul":
