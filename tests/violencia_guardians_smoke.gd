@@ -79,13 +79,25 @@ func run() -> void:
         # Un golpe cercano debe dañar al frente y fallar si Dante se aparta.
         level.hero.invulnerable = 0
         level.hero.health = 6
-        level.hero.position = enemy.position+Vector2(0,40)
-        enemy.charge_direction = Vector2.DOWN
         enemy.attack_kind = "bite" if seal == "memoria" else "spear" if seal == "contencion" else "sweep"
+        var blocked_target: Vector2 = enemy.position + Vector2.DOWN * 40.0
+        if not level.has_clear_path(enemy.position, blocked_target):
+            level.hero.position = blocked_target
+            enemy.charge_direction = Vector2.DOWN
+            enemy._release_guardian_attack()
+            check(level.hero.health == 6, "El ataque no atraviesa el borde: " + seal)
+        var clear_direction := Vector2.ZERO
+        for direction in [Vector2.DOWN, Vector2.UP, Vector2.LEFT, Vector2.RIGHT]:
+            if level.has_clear_path(enemy.position, enemy.position + direction * 40.0):
+                clear_direction = direction
+                break
+        check(clear_direction != Vector2.ZERO, "Hay suelo para probar el ataque: " + seal)
+        level.hero.position = enemy.position + clear_direction * 40.0
+        enemy.charge_direction = clear_direction
         enemy._release_guardian_attack()
         check(level.hero.health==5,"Ataque cercano aplica daño: "+seal)
         level.hero.invulnerable = 0
-        level.hero.position = enemy.position+Vector2(0,-150)
+        level.hero.position = enemy.position - clear_direction * 150.0
         enemy._release_guardian_attack()
         check(level.hero.health==5,"Apartarse evita el golpe: "+seal)
         enemy.take_damage(100)

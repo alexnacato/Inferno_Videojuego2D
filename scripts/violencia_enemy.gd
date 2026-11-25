@@ -44,12 +44,12 @@ func _ready() -> void:
             var texture: Texture2D = load(sheet)
             var source_image := texture.get_image()
             var row := 0 if facing in ["down","left"] else 1
-            for action in ["idle","walk","attack"]:
+            for action in ["idle","walk","attack","hurt","death"]:
                 var key: String = action+"_"+facing
                 library.add_animation(key)
                 library.set_animation_speed(key,7)
                 library.set_animation_loop(key,true)
-                var columns: Array = [0] if action == "idle" else [1,2] if action == "walk" else [3,0]
+                var columns: Array = [0] if action == "idle" else [1,2] if action == "walk" else [3,2,1] if action == "death" else [3,0]
                 for column in columns:
                     var region := Rect2i(column * 190, row * 210, 190, 210)
                     library.add_frame(key, preload("res://scripts/sprite_library.gd").isolated(texture, source_image, region))
@@ -102,8 +102,8 @@ func _physics_process(delta: float) -> void:
         var facing := "left" if direction.x < 0 else "right"
         if absf(direction.y) > absf(direction.x):
             facing = "up" if direction.y < 0 else "down"
-        var action := "attack" if state in ["slam"] else "walk" if state in ["charge","pursue"] else "idle"
-        _animate(action+"_"+facing)
+        var action := "attack" if state in ["slam", "windup", "slam_warning"] else "walk" if state in ["charge","pursue"] else "idle"
+        _animate(("hurt" if flash > 0.0 and state == "pursue" else action)+"_"+facing)
         art.position.y = -101 + (sin(clock*12)*2 if state in ["charge","pursue"] else sin(clock*2)*1.2)
         art.modulate = Color("e6a29a") if flash > 0 else Color("b6aaa4") if state == "stunned" else Color.WHITE
     queue_redraw()
@@ -128,7 +128,7 @@ func _common_tick(delta: float) -> void:
                     burst_timer = 0.0
                 elif attack_index % 3 == 1:
                     for angle in [-0.28,0.0,0.28]:
-                        world.spawn_projectile(position+charge_direction*30,charge_direction.rotated(angle),true,1)
+                        world.spawn_projectile(position,charge_direction.rotated(angle),true,1)
                 else:
                     for i in range(8):
                         world.spawn_projectile(position,Vector2.RIGHT.rotated(TAU*i/8.0),true,1)
@@ -137,12 +137,12 @@ func _common_tick(delta: float) -> void:
                 if attack_index % 2 == 0:
                     for i in range(5):
                         world.spawn_projectile(position,charge_direction.rotated((i-2)*0.32),true,1)
-                elif to_hero.length() < 105:
+                elif to_hero.length() < 105 and world.has_clear_path(position, hero.position):
                     hero.take_damage(1)
             state = "pursue"
             cooldown = 1.8
         return
-    if cooldown <= 0 and to_hero.length() < (330 if archetype == "centauro" else 76):
+    if cooldown <= 0 and to_hero.length() < (330 if archetype == "centauro" else 76) and world.has_clear_path(position, hero.position):
         charge_direction = to_hero.normalized()
         state = "windup"
         timer = 0.65
@@ -163,7 +163,7 @@ func _boss_tick(delta: float) -> void:
     match state:
         "pursue":
             look_direction = (hero.position-position).normalized()
-            var orbit := look_direction.orthogonal() * sin(clock*0.8)*55.0
+            var orbit := look_direction.orthogonal() * sin(clock*0.8)*69.0
             var motion := (look_direction*65.0 if position.distance_to(hero.position)>150 else orbit)*delta
             position = world.geometry.move_on_ground(position,motion,body_radius,true)
             if cooldown <= 0:
@@ -179,6 +179,7 @@ func _boss_tick(delta: float) -> void:
                 preload("res://scripts/combat_fx.gd").burst(self, global_position, charge_direction, 65.0, Color("#ffbb76"))
                 timer = 1.25
                 world.play_sound("carga")
+                AudioManager.cue("jefe")
         "charge":
             var displacement := charge_direction * (740.0 if phase == 2 else 610.0) * delta
             # La carga no se desliza por paredes: chocar abre una ventana de daño.
@@ -189,7 +190,7 @@ func _boss_tick(delta: float) -> void:
                     stun()
                     break
                 position = target
-                if position.distance_to(hero.position) < body_radius+17:
+                if position.distance_to(hero.position) < body_radius+17 and world.has_clear_path(position, hero.position):
                     hero.take_damage(2)
             if timer <= 0 and state == "charge":
                 state = "recover"
@@ -200,7 +201,7 @@ func _boss_tick(delta: float) -> void:
                 cooldown = 0.6
         "slam_warning":
             if timer <= 0:
-                if position.distance_to(hero.position) < 170:
+                if position.distance_to(hero.position) < 170 and world.has_clear_path(position, hero.position):
                     hero.take_damage(2)
                 for i in range(12):
                     world.spawn_projectile(position,Vector2.RIGHT.rotated(TAU*i/12.0),true,1)
@@ -208,6 +209,7 @@ func _boss_tick(delta: float) -> void:
                 state = "slam"
                 timer = 0.4
                 world.play_sound("choque")
+                AudioManager.cue("jefe")
         "slam":
             if timer <= 0:
                 state = "recover"
@@ -236,8 +238,9 @@ func take_damage(amount: int, _direction: Vector2 = Vector2.DOWN) -> void:
     hp_changed.emit(hp,max_hp)
     world.play_sound("impacto")
     if hp <= 0:
+        AudioManager.cue("muerte")
         dead = true
-        _animate("death")
+        _animate("death_down" if boss else "death")
         died.emit(uid)
     elif not boss:
         _animate("hurt")
@@ -256,6 +259,6 @@ func _draw() -> void:
         draw_arc(Vector2(0,-160),20,clock*3,clock*3+5,30,Color("f0dec2"),3,true)
     if state == "slam":
         draw_arc(Vector2.ZERO,170*(1.0-timer/0.4),0,TAU,64,Color(0.65,0.4,0.35,0.45),3,true)
-    if not boss and hp < max_hp:
+    if not boss:
         draw_rect(Rect2(-25,-95,50,5),Color("251b1c"))
         draw_rect(Rect2(-25,-95,50*float(hp)/max_hp,5),Color("c59488"))

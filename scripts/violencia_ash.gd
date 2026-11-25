@@ -10,7 +10,7 @@ func _physics_process(delta: float) -> void:
     if elapsed>=lifetime:
         queue_free()
         return
-    if position.distance_to(world.hero.position)<radius:
+    if position.distance_to(world.hero.position)<radius and world.has_clear_path(position, world.hero.position):
         world.hero.take_damage(1)
     queue_redraw()
 func _draw() -> void:

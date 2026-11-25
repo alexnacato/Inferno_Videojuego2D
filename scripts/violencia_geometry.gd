@@ -19,6 +19,8 @@ func _init() -> void:
     _add([Vector2(290,295),Vector2(347,256),Vector2(505,256),Vector2(560,292),Vector2(562,342),Vector2(517,380),Vector2(481,392),Vector2(368,392),Vector2(315,369),Vector2(286,333)])
     _add([Vector2(89,318),Vector2(140,288),Vector2(206,277),Vector2(263,281),Vector2(311,290),Vector2(325,317),Vector2(268,316),Vector2(192,310),Vector2(144,326),Vector2(117,350),Vector2(127,375),Vector2(184,407),Vector2(194,432),Vector2(163,441),Vector2(121,415),Vector2(93,397),Vector2(70,356)])
     _add([Vector2(525,294),Vector2(589,282),Vector2(649,279),Vector2(710,290),Vector2(765,312),Vector2(783,347),Vector2(765,388),Vector2(732,411),Vector2(683,426),Vector2(675,399),Vector2(722,370),Vector2(729,346),Vector2(693,324),Vector2(638,315),Vector2(541,320)])
+    # El corredor central cruza la terraza detrás del pedestal.
+    _add([Vector2(398,232),Vector2(452,232),Vector2(456,299),Vector2(393,299)])
     # Escaleras superiores a izquierda y derecha y explanada del jefe.
     _add([Vector2(297,305),Vector2(317,244),Vector2(343,226),Vector2(380,234),Vector2(359,283),Vector2(345,305)])
     _add([Vector2(487,233),Vector2(527,226),Vector2(553,250),Vector2(568,306),Vector2(516,302),Vector2(504,271)])

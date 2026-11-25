@@ -42,13 +42,13 @@ var current_zone := ""
 var debug_collision := false
 var damage_flash := 0.0
 var last_hp := 6
-var ambient: AudioStreamPlayer
 var sounds: Dictionary = {}
 var finishing := false
 
 var gate_art: Node2D
 
 func _ready() -> void:
+    preload("res://scripts/foreground.gd").install($Mapa, hero, PackedVector2Array([Vector2(218,225),Vector2(235,197),Vector2(246,166),Vector2(270,148),Vector2(299,145),Vector2(319,139),Vector2(325,167),Vector2(334,201),Vector2(346,229),Vector2(326,244),Vector2(242,247)]), 241.0)
     gate_art = preload("res://scripts/gate_visual.gd").install(self, Rect2(1083, 74, 135, 186), Color("ffac61"))
     Game.enter_violencia()
     data = _validated_state(Game.progress.get("violencia", {}))
@@ -134,6 +134,7 @@ func _process(delta: float) -> void:
     _encounters()
     if not data["boss_down"] and not boss_fighting and _ritual_complete() and Geometry.ARENA.grow(-45).has_point(hero.position):
         _begin_boss()
+        return
     if heat_active() and _on_hot_sand(hero.position):
         hero.take_damage(1)
     queue_redraw()
@@ -335,7 +336,8 @@ func melee_hit(origin: Vector2, direction: Vector2) -> void:
             continue
         var to_enemy: Vector2 = enemy.position-origin
         if to_enemy.length() < 90+enemy.body_radius and (to_enemy.length() < 28 or direction.dot(to_enemy.normalized()) > 0.25):
-            enemy.take_damage(2,direction)
+            if has_clear_path(origin, enemy.position):
+                enemy.take_damage(2,direction)
     play_sound("golpe")
 
 func spawn_projectile(origin: Vector2, direction: Vector2, hostile: bool, amount: int, kind: String = "verse") -> void:
@@ -346,7 +348,7 @@ func spawn_projectile(origin: Vector2, direction: Vector2, hostile: bool, amount
     shot.kind = kind
     shot.damage = amount
     shot.world = self
-    shot.speed = (300 if kind == "arrow" else 205 if kind == "ember" else 255) if hostile else 400
+    shot.speed = (300 if kind == "arrow" else 205 if kind == "ember" else 255) if hostile else 620
     bullets.add_child(shot)
     if not hostile:
         play_sound("verso")
@@ -361,6 +363,9 @@ func spawn_ash(origin: Vector2) -> void:
 
 func can_walk(p: Vector2, radius: float = 14.0) -> bool:
     return geometry.can_walk(p,radius,boss_fighting)
+
+func has_clear_path(a: Vector2, b: Vector2) -> bool:
+    return preload("res://scripts/walk_solver.gd").clear_segment(a, b, can_walk.bind(3.0))
 
 func can_occupy_hero(p: Vector2, _dodging: bool = false) -> bool:
     if not can_walk(p, 10.0):
@@ -413,7 +418,7 @@ func _respawn() -> void:
     heat_clock = 0
 
 func _toggle_pause() -> void:
-    if hud.dialogue_open:
+    if hud.dialogue_open or (not game_active and not paused):
         return
     paused = not paused
     game_active = not paused
@@ -451,13 +456,9 @@ func _combat_feedback(kind: String) -> void:
         play_sound("esquiva")
 
 func _make_audio() -> void:
-    ambient = AudioStreamPlayer.new()
-    ambient.stream = load("res://assets/violencia/violencia_ambiente.wav")
-    ambient.volume_db = -23
-    add_child(ambient)
-    ambient.play()
     for id in ["sello","error","carga","choque","impacto","golpe","verso","herida","esquiva"]:
         var sound := AudioStreamPlayer.new()
+        sound.bus = "SFX"
         sound.stream = load("res://assets/violencia/%s.wav" % id)
         sound.volume_db = -18 if id in ["carga","choque"] else -23
         add_child(sound)
@@ -468,8 +469,6 @@ func play_sound(id: String) -> void:
         sounds[id].play()
 
 func _exit_tree() -> void:
-    if is_instance_valid(ambient):
-        ambient.stop()
     for sound in sounds.values():
         if is_instance_valid(sound):
             sound.stop()

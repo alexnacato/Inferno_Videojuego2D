@@ -24,6 +24,9 @@ func run_checks() -> void:
     check(g.can_walk(Vector2(425,143) * g.SCALE,14),"Escalera superior abierta")
     check(not g.can_walk(g.PILLARS[0],14),"Columna superior bloqueada")
     check(not g.can_walk(Vector2(427,333) * g.SCALE,14),"Pedestal bloqueado")
+    var central_start: Vector2 = Vector2(425,278) * g.SCALE
+    var central_step: Vector2 = Vector2.UP * 66 * g.SCALE
+    check(g.move_on_ground(central_start, central_step, 10.0).distance_to(central_start + central_step) < 1.0, "Entrada central directa a la arena")
     check(not g.can_walk(Vector2(121,200) * g.SCALE,14),"Bosque decorativo fuera del camino")
     var start := Vector2i((g.SPAWN / 20.0).round())
     var reached := {start:true}
@@ -149,7 +152,7 @@ func run_checks() -> void:
     game.load_progress()
     check(game.progress["violencia"]["boss_down"] and game.progress["dash_extended"],"Victoria y mejora persisten al recargar")
     check(game.next_scene() == "res://scenes/Violencia.tscn","Continuar selecciona Violencia")
-    level.ambient.stop()
+    root.get_node("AudioManager").enter("")
     for sound in level.sounds.values():
         sound.stop()
     await create_timer(0.2).timeout
@@ -163,7 +166,7 @@ func run_checks() -> void:
     reopened.data["completed"] = true
     reopened._save()
     check(game.next_scene() == "res://scenes/FinViolencia.tscn","Continuar tras completar abre desenlace")
-    reopened.ambient.stop()
+    root.get_node("AudioManager").enter("")
     await create_timer(0.2).timeout
     reopened.queue_free()
     await process_frame

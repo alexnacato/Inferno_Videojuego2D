@@ -11,17 +11,20 @@ func _ready() -> void:
         art = Sprite2D.new()
         art.texture = preload("res://scripts/sprite_library.gd").frame("res://assets/violencia/almas_virgilio.png", 1 if kind == "guide" else 0, 0, 2, 1, Vector2i(80,128))
         art.position.y = -61
-        art.scale = Vector2(1.0, 1.0)
+        art.scale = Vector2.ONE * (1.20 if kind == "guide" else 1.08)
         if kind == "soul":
             art.modulate = Color(0.88, 0.88, 0.87, 0.78)
         add_child(art)
-        preload("res://scripts/enemy_contrast.gd").apply(art)
+        preload("res://scripts/interaction_visual.gd").spirit(art, kind == "guide")
 func _process(delta: float) -> void:
     clock += delta
-    if art != null and kind == "soul":
-        art.position.y = -61 + sin(clock*1.6)*3
+    if art != null:
+        art.position.y = -71 + sin(clock*1.6)*5
+        art.modulate.a = 0.68 if complete else 1.0
     queue_redraw()
 func _draw() -> void:
+    if complete and kind in ["seal", "soul"]:
+        preload("res://scripts/interaction_visual.gd").seen(self)
     var col := Color("bcb4a9") if complete else Color("d7958e")
     if kind == "seal":
         # Glifos desgastados sobre piedra: sin numeración ni medallón.

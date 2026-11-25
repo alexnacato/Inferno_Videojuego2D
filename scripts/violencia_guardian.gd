@@ -3,8 +3,8 @@ extends "res://scripts/violencia_enemy.gd"
 const ART = preload("res://scripts/sprite_library.gd")
 const CONFIG := {
     "centauro": {"hp":8,"radius":24.0,"speed":100.0,"size":Vector2i(150,146)},
-    "mastin": {"hp":6,"radius":19.0,"speed":147.0,"size":Vector2i(132,106)},
-    "ceniza": {"hp":9,"radius":21.0,"speed":80.0,"size":Vector2i(110,148)}
+    "mastin": {"hp":6,"radius":21.0,"speed":147.0,"size":Vector2i(132,106)},
+    "ceniza": {"hp":9,"radius":23.0,"speed":80.0,"size":Vector2i(110,148)}
 }
 var facing := "down"
 var attack_kind := ""
@@ -29,7 +29,8 @@ func _ready() -> void:
     var canvas: Vector2i = config["size"]
     var library: SpriteFrames = build_library()
     sprite.sprite_frames = library
-    sprite.position.y = -float(canvas.y)/2.0+4.0
+    sprite.scale = Vector2.ONE * (1.30 if archetype in ["mastin", "ceniza"] else 1.06)
+    sprite.position.y = -float(canvas.y) * sprite.scale.y / 2.0 + 4.0
     sprite.play("idle_down")
     art = sprite
     add_child(art)
@@ -67,7 +68,7 @@ func _common_tick(delta: float) -> void:
         var desired := charge_direction*speed*delta
         var old := position
         position = world.geometry.move_on_ground(position,desired,body_radius)
-        if not dash_hit and position.distance_to(hero.position)<body_radius+23:
+        if not dash_hit and position.distance_to(hero.position)<body_radius+23 and world.has_clear_path(position, hero.position):
             hero.take_damage(1)
             dash_hit = true
         if timer<=0 or position.distance_to(old)<desired.length()*0.3:
@@ -91,7 +92,7 @@ func _common_tick(delta: float) -> void:
             _animate("idle")
         return
     var range_limit := 335.0 if archetype in ["centauro","ceniza"] else 235.0
-    if cooldown<=0 and distance<range_limit:
+    if cooldown<=0 and distance<range_limit and world.has_clear_path(position, hero.position):
         charge_direction = offset.normalized()
         _face(charge_direction)
         attack_kind = choose_attack(distance)
@@ -116,6 +117,7 @@ func choose_attack(distance: float) -> String:
     return "sweep" if distance<120 else "ash" if pattern==2 else "fire"
 
 func _release_guardian_attack() -> void:
+    AudioManager.cue("enemigo")
     preload("res://scripts/combat_fx.gd").burst(self, global_position, charge_direction, 74.0, Color("ffc17b"))
     attack_cycle += 1
     _animate("attack")
@@ -127,10 +129,10 @@ func _release_guardian_attack() -> void:
         return
     if attack_kind == "arrows":
         for angle in [-0.17,0.0,0.17]:
-            world.spawn_projectile(position+charge_direction*30,charge_direction.rotated(angle),true,1,"arrow")
+            world.spawn_projectile(position,charge_direction.rotated(angle),true,1,"arrow")
     elif attack_kind == "fire":
         for angle in [-0.3,0.0,0.3]:
-            world.spawn_projectile(position+charge_direction*25,charge_direction.rotated(angle),true,1,"ember")
+            world.spawn_projectile(position,charge_direction.rotated(angle),true,1,"ember")
     elif attack_kind == "ash":
         world.spawn_ash(position)
         for i in range(6):
@@ -138,7 +140,7 @@ func _release_guardian_attack() -> void:
     else:
         var to_hero: Vector2 = hero.position-position
         var reach := 120.0 if attack_kind in ["sweep","spear"] else 86.0
-        if to_hero.length()<reach and (to_hero.length()<30 or charge_direction.dot(to_hero.normalized())>0.15):
+        if to_hero.length()<reach and (to_hero.length()<30 or charge_direction.dot(to_hero.normalized())>0.15) and world.has_clear_path(position, hero.position):
             hero.take_damage(1)
         if attack_kind == "sweep":
             world.spawn_ash(position+charge_direction*55)
@@ -150,8 +152,8 @@ func _draw() -> void:
     draw_set_transform(Vector2.ZERO,0,Vector2(1,0.34))
     draw_circle(Vector2.ZERO,body_radius+7,Color(0,0,0,0.35))
     draw_set_transform(Vector2.ZERO)
-    if not dead and hp<max_hp:
-        var y: float = -float(CONFIG[archetype]["size"].y)-5
+    if not dead:
+        var y: float = art.position.y * 2.0 - 10.0
         draw_rect(Rect2(-26,y,52,4),Color(0.10,0.07,0.07,0.7))
         draw_rect(Rect2(-26,y,52*float(hp)/max_hp,4),Color("b8887c"))
 
