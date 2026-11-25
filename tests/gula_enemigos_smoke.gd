@@ -23,7 +23,7 @@ func _run() -> void:
     level.hero.global_position = Vector2(1040, 550)
     level._trigger_encounters()
     _check(level.foes.get_child_count() == 6, "Deben aparecer seis enemigos normales")
-    var dante_image: Image = Image.load_from_file(ProjectSettings.globalize_path("res://assets/dante/idle.png"))
+    var dante_image: Image = Image.load_from_file(ProjectSettings.globalize_path("res://assets/dante/dante_poses_limpias.png"))
     var dante_height: float = float(dante_image.get_region(Rect2i(0, 0, 80, 96)).get_used_rect().size.y) * level.hero.art.scale.y
     var types := {}
     for enemy in level.foes.get_children():
@@ -34,7 +34,7 @@ func _run() -> void:
         var visible: Rect2i = sprite_image.get_region(Rect2i(0, 0, 192, 192)).get_used_rect()
         var visible_height: float = float(visible.size.y) * enemy.art.scale.y
         var foot_y: float = enemy.art.position.y + (float(visible.end.y) - 96.0) * enemy.art.scale.y
-        _check(visible_height >= dante_height * 0.85 and visible_height <= dante_height * 1.3,
+        _check(visible_height > dante_height and visible_height <= dante_height * 1.65,
             "La silueta de %s no guarda escala con Dante" % enemy.archetype)
         _check(absf(foot_y) < 20.0, "Los pies de %s no coinciden con el suelo" % enemy.archetype)
         _check(level.can_walk(enemy.global_position, enemy.body_radius), "Aparece fuera del suelo: " + enemy.spawn_id)
@@ -92,7 +92,7 @@ func _run() -> void:
     var boss_visible: Rect2i = boss_image.get_region(Rect2i(0, 0, 384, 384)).get_used_rect()
     var boss_height: float = float(boss_visible.size.y) * level.boss.art.scale.y
     var boss_foot_y: float = level.boss.art.position.y + (float(boss_visible.end.y) - 192.0) * level.boss.art.scale.y
-    _check(boss_height >= dante_height * 1.5 and boss_height <= dante_height * 2.0,
+    _check(boss_height >= dante_height * 1.55 and boss_height <= dante_height * 2.55,
         "Cerbero no guarda escala con Dante y la arena: %.1f / %.1f" % [boss_height, dante_height])
     _check(absf(boss_foot_y) < 20.0, "Los pies de Cerbero no coinciden con el suelo")
     _check(level.boss.art.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS,
@@ -103,7 +103,7 @@ func _run() -> void:
     for action in ["idle", "walk"]:
         var image: Image = Image.load_from_file(ProjectSettings.globalize_path("res://assets/gula/enemies/cerbero/" + action + ".png"))
         _check(image.get_pixel(50, 100).a < 0.05, "Cerbero tiene fondo opaco en " + action)
-    level.boss.take_damage(18, Vector2.DOWN)
+    level.boss.take_damage(ceili(level.boss.max_hp / 2.0), Vector2.DOWN)
     _check(level.boss.phase == 2, "Cerbero no entra en segunda fase")
     level.hero.global_position = level.boss.global_position + Vector2(0, 95)
     level.boss.hurt_left = 0.0

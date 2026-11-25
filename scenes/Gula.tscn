@@ -82,14 +82,14 @@ kind = "guia"
 caption = "HABLAR CON VIRGILIO"
 
 [node name="OfrendaOeste" type="Node2D" parent="Marcadores"]
-position = Vector2(243, 501)
+position = Vector2(321, 494)
 script = ExtResource("6_marker")
 uid = "ofrenda_oeste"
 kind = "ofrenda"
 caption = "HUNDIR OFRENDA OESTE"
 
 [node name="OfrendaEste" type="Node2D" parent="Marcadores"]
-position = Vector2(1205, 501)
+position = Vector2(1127, 494)
 script = ExtResource("6_marker")
 uid = "ofrenda_este"
 kind = "ofrenda"
@@ -104,8 +104,8 @@ kind = "alma"
 caption = "ESCUCHAR A DARIA"
 
 [node name="Sprite2D" type="Sprite2D" parent="Marcadores/Daria"]
-position = Vector2(0, -40)
-scale = Vector2(0.055, 0.055)
+position = Vector2(0, -60)
+scale = Vector2(0.086, 0.086)
 texture = ExtResource("7_daria")
 texture_filter = 1
 
@@ -118,8 +118,8 @@ kind = "alma"
 caption = "ESCUCHAR A OLMO"
 
 [node name="Sprite2D" type="Sprite2D" parent="Marcadores/Olmo"]
-position = Vector2(0, -40)
-scale = Vector2(0.055, 0.055)
+position = Vector2(0, -60)
+scale = Vector2(0.086, 0.086)
 texture = ExtResource("8_olmo")
 texture_filter = 1
 

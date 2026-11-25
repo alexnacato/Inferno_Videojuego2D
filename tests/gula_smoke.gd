@@ -23,7 +23,7 @@ func _run() -> void:
         _check(soul.art != null and soul.art.texture != null, "Falta la figura visible de " + soul.name)
         _check(soul.art.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS,
             "La figura de " + soul.name + " no usa filtrado para escala de juego")
-        _check(soul.art.scale.y * 1536.0 >= 75.0 and soul.art.scale.y * 1536.0 <= 95.0,
+        _check(soul.art.scale.y * 1536.0 >= 115.0,
             "La figura de " + soul.name + " no guarda escala con Dante")
         _check(not level.can_walk(soul.global_position, 10.0), "Dante atraviesa a " + soul.name)
         var inward: Vector2 = Vector2.RIGHT if soul.name == "Daria" else Vector2.LEFT
@@ -69,7 +69,7 @@ func _run() -> void:
     level.boss.pattern = 2
     level.boss._release_attack()
     _check(level.hero.health == health_before - 4, "El zarpazo de Cerbero no causa daño")
-    for i in range(18):
+    for i in range(ceili(level.boss.max_hp / 2.0)):
         level.boss.take_damage(2, Vector2.DOWN)
     progress = game.get("progress")
     _check(level.boss_defeated and bool(progress["gula_boss_defeated"]), "Cerbero no libera la salida")

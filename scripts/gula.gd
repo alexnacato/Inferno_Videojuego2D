@@ -51,8 +51,10 @@ var triggered_waves: Dictionary = {}
 var navigation_grids: Dictionary = {}
 
 var gate_art: Node2D
+var pools: Array[Vector3] = []
 
 func _ready() -> void:
+    preload("res://scripts/foreground.gd").install($MapaPintado, hero, PackedVector2Array([Vector2(257,242),Vector2(258,226),Vector2(291,206),Vector2(316,207),Vector2(328,223),Vector2(317,246),Vector2(282,255)]), 249.0)
     gate_art = preload("res://scripts/gate_visual.gd").install(self, Rect2(669, 53, 109, 119), Color("e7e7a0"))
     Game.enter_gula()
     hero.world = self
@@ -76,7 +78,9 @@ func _ready() -> void:
             "La lluvia pudre el banquete y el lodo roba fuerza a tus pasos. Las ofrendas de ambos patios deben hundirse antes de enfrentar a Cerbero. Escucha también las voces que quedaron aquí.",
             ["Entrar en la Gula"])
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+    if game_active:
+        _tick_residue(delta)
     hud.set_dash_fraction(1.0 - clampf(hero.dash_recharge / hero.dash_cooldown_duration, 0.0, 1.0))
     if not game_active or paused or hud.dialogue_open:
         hud.set_nearby("")
@@ -91,7 +95,28 @@ func _process(_delta: float) -> void:
     if Input.is_action_just_pressed("hint"):
         _show_hint()
 
+func spawn_residue(point: Vector2) -> void:
+    if can_walk(point, 8.0):
+        pools.append(Vector3(point.x, point.y, 2.3))
+
+func _tick_residue(delta: float) -> void:
+    for i in range(pools.size() - 1, -1, -1):
+        var pool := pools[i]
+        pool.z -= delta
+        if pool.z <= 0.0:
+            pools.remove_at(i)
+        else:
+            pools[i] = pool
+            if hero.global_position.distance_to(Vector2(pool.x, pool.y)) < 24.0:
+                hero.take_damage(1)
+                if not game_active:
+                    return
+
 func _draw() -> void:
+    for pool in pools:
+        var center := Vector2(pool.x, pool.y)
+        draw_circle(center, 24.0, Color(0.32, 0.56, 0.10, minf(0.54, pool.z)))
+        draw_arc(center, 23.0, 0.0, TAU, 26, Color(0.78, 0.89, 0.30, minf(0.65, pool.z)), 1.6)
     for area in mud.get_children():
         var polygon: PackedVector2Array = area.get("polygon")
         draw_colored_polygon(area.transform * polygon, Color(0.27, 0.35, 0.10, 0.20))
@@ -147,7 +172,7 @@ func has_clear_path(a: Vector2, b: Vector2, radius: float = 5.0) -> bool:
 
 func _build_navigation() -> void:
     var map_size: Vector2 = $MapaPintado.texture.get_size()
-    for clearance in [20, 26]:
+    for clearance in [22, 29]:
         var grid := AStarGrid2D.new()
         grid.region = Rect2i(0, 0, ceili(map_size.x / float(NAV_CELL)), ceili(map_size.y / float(NAV_CELL)))
         grid.cell_size = Vector2(NAV_CELL, NAV_CELL)
@@ -161,7 +186,7 @@ func _build_navigation() -> void:
         navigation_grids[clearance] = grid
 
 func route_to(from: Vector2, destination: Vector2, radius: float) -> PackedVector2Array:
-    var grid: AStarGrid2D = navigation_grids[26 if radius > 20.0 else 20]
+    var grid: AStarGrid2D = navigation_grids[29 if radius > 22.0 else 22]
     var start: Vector2i = _nearest_nav_cell(grid, from)
     var finish: Vector2i = _nearest_nav_cell(grid, destination)
     var result := PackedVector2Array()
@@ -189,7 +214,7 @@ func melee_hit(origin: Vector2, facing: Vector2) -> void:
         if not enemy.dead and enemy.active:
             var toward: Vector2 = enemy.global_position - origin
             var reach: float = 126.0 if enemy == boss else 91.0
-            if toward.length() < reach and toward.normalized().dot(facing) > 0.2:
+            if toward.length() < reach and toward.normalized().dot(facing) > 0.2 and has_clear_path(origin, enemy.global_position):
                 enemy.take_damage(2, facing)
 
 func spawn_projectile(start: Vector2, direction: Vector2, hostile: bool, hit_damage: int) -> void:
@@ -198,7 +223,7 @@ func spawn_projectile(start: Vector2, direction: Vector2, hostile: bool, hit_dam
     shot.direction = direction.normalized()
     shot.enemy_owned = hostile
     shot.damage = hit_damage
-    shot.speed = 245.0 if hostile else 355.0
+    shot.speed = 245.0 if hostile else 620.0
     shot.world = self
     bullets.add_child(shot)
 
@@ -247,11 +272,11 @@ func _talk_soul(uid: String) -> void:
     elif uid == "alma_daria":
         _dialogue(uid, "DARIA · ALMA DE LA GULA",
             "Acumulé comida mientras mis vecinos pasaban hambre. Ahora solo veo banquetes podridos. ¿Puedo compartir lo que me queda, aunque sea tarde?",
-            ["Permitirle reparar su falta · Redención", "Recordarle el daño que causó · Rigor"])
+            ["Permitirle reparar su falta", "Recordarle el daño que causó"])
     else:
         _dialogue(uid, "OLMO · ALMA DE LA GULA",
             "Fui cocinero y desperdicié cuanto otros necesitaban. Aquí la mesa se hunde conmigo. ¿Merece mi oficio una segunda oportunidad?",
-            ["Animarlo a alimentar a otros · Redención", "Juzgar su derroche · Rigor"])
+            ["Animarlo a alimentar a otros", "Juzgar su derroche"])
 
 func _dialogue(context: String, title: String, message: String, options: Array) -> void:
     dialogue_context = context
@@ -260,7 +285,11 @@ func _dialogue(context: String, title: String, message: String, options: Array) 
     hud.show_dialogue(title, message, options)
 
 func _on_dialogue_selected(choice: int) -> void:
-    if dialogue_context == "intro":
+    if dialogue_context == "death":
+        if is_instance_valid(boss) and not boss.dead:
+            boss.reset_encounter()
+        hero.restore(hero.max_health, SPAWN)
+    elif dialogue_context == "intro":
         intro_seen = true
     elif dialogue_context == "alma_daria" or dialogue_context == "alma_olmo":
         if not decided.has(dialogue_context):
@@ -272,7 +301,7 @@ func _on_dialogue_selected(choice: int) -> void:
             _save_state()
             _refresh_hud()
             _dialogue("short", "ECO DE LA GULA",
-                "Tu decisión se suma a tu camino de Redención o Rigor.", ["Continuar"])
+                "Tu respuesta permanecerá con esta alma.", ["Continuar"])
             _check_boss_spawn()
             return
     dialogue_context = ""
@@ -424,13 +453,15 @@ func _on_health_changed(current: int, maximum: int) -> void:
 
 func _on_exhausted() -> void:
     game_active = false
-    _toast("Dante cae en el lodo y vuelve al acceso del círculo...")
+    for shot in bullets.get_children():
+        shot.queue_free()
+    _save_state()
+    pools.clear()
+    _toast("Dante ha caído. Regresa al inicio del círculo con su progreso guardado.", 4.5)
     await get_tree().create_timer(1.1).timeout
     if not is_inside_tree():
         return
-    hero.restore(hero.max_health, checkpoint)
-    hero.control_enabled = true
-    game_active = true
+    _dialogue("death", "VIRGILIO · LEVÁNTATE", "Dante regresará al inicio del círculo con su progreso guardado.", ["Volver al inicio"])
 
 func _complete_level() -> void:
     game_active = false
@@ -440,7 +471,7 @@ func _complete_level() -> void:
     Game.cross_threshold("res://scenes/FinGula.tscn")
 
 func _toggle_pause() -> void:
-    if hud.dialogue_open:
+    if hud.dialogue_open or (not game_active and not paused):
         return
     paused = not paused
     game_active = not paused

@@ -10,8 +10,8 @@ const DATA := {
     "rastrero": {"hp": 5, "speed": 123.0, "radius": 18.0, "reach": 102.0, "cooldown": 1.8},
     "escanciador": {"hp": 6, "speed": 86.0, "radius": 19.0, "reach": 255.0, "cooldown": 2.45},
 }
-const VISUAL_SCALE := {"penitente": 0.48, "rastrero": 0.40, "escanciador": 0.40}
-const HEALTH_BAR_Y := {"penitente": -82.0, "rastrero": -70.0, "escanciador": -70.0}
+const VISUAL_SCALE := {"penitente": 0.78, "rastrero": 0.81, "escanciador": 0.73}
+const HEALTH_BAR_Y := {"penitente": -137.0, "rastrero": -136.0, "escanciador": -134.0}
 const ATTACK_TINT := {
     "penitente": Color(0.91, 0.48, 0.30, 0.68),
     "rastrero": Color(0.40, 0.76, 0.66, 0.68),
@@ -57,7 +57,7 @@ func _ready() -> void:
     var data: Dictionary = DATA[archetype]
     max_hp = int(data["hp"])
     hp = max_hp
-    body_radius = float(data["radius"])
+    body_radius = float(data["radius"]) + (3.0 if is_instance_valid(world) and str(world.name) == "Gula" else 2.0)
     anchor = global_position
     patrol_target = anchor
     var sprite_scale: float = float(VISUAL_SCALE[archetype])
@@ -148,7 +148,7 @@ func _physics_process(delta: float) -> void:
                 desired_velocity = _steer(desired) * speed
             elif not can_see_hero:
                 alert_left = 0.0
-    elif global_position.distance_to(anchor) > 20.0:
+    elif global_position.distance_to(anchor) > 20.0 and state not in ["idle", "patrol"]:
         state = "return"
         desired_velocity = _steer(anchor) * speed
     else:
@@ -218,7 +218,9 @@ func _steer(destination: Vector2) -> Vector2:
     return global_position.direction_to(route[0]) if not route.is_empty() else Vector2.ZERO
 
 func _release_attack() -> void:
-    preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_direction, 73.0, Color("d4ef89"))
+    AudioManager.cue("enemigo")
+    var accent := Color("#b2e9ff") if is_instance_valid(world) and str(world.name) == "Traicion" else Color("#d4ef89")
+    preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_direction, 73.0, accent)
     if dead or not is_instance_valid(hero) or not is_instance_valid(world):
         return
     state = "attack"
@@ -228,15 +230,17 @@ func _release_attack() -> void:
     cooldown = float(DATA[archetype]["cooldown"])
     recovery = 0.35
     if archetype == "escanciador":
-        world.spawn_projectile(global_position + attack_direction * 24.0, attack_direction, true, 1)
+        world.spawn_projectile(global_position, attack_direction, true, 1)
     elif global_position.distance_to(hero.global_position) <= 92.0 and world.has_clear_path(global_position, hero.global_position, 5.0) and attack_direction.dot(global_position.direction_to(hero.global_position)) > 0.25:
         hero.take_damage(2)
 
 func take_damage(amount: int, _direction: Vector2 = Vector2.DOWN) -> void:
     if dead or not active:
         return
+    AudioManager.cue("impacto")
     hp = maxi(0, hp - maxi(0, amount))
     if hp == 0:
+        AudioManager.cue("muerte")
         dead = true
         active = false
         collision_layer = 0
@@ -280,5 +284,10 @@ func _draw() -> void:
     draw_set_transform(Vector2.ZERO)
     if dead:
         return
+    var bar_y: float = HEALTH_BAR_Y[archetype]
+    draw_rect(Rect2(-25.0, bar_y, 50.0, 6.0), Color("#251c20"))
+    draw_rect(Rect2(-25.0, bar_y, 50.0 * float(hp) / max_hp, 6.0), ATTACK_TINT[archetype])
+    if windup > 0.0:
+        draw_arc(Vector2.ZERO, body_radius + 12.0, 0.0, TAU, 36, ATTACK_TINT[archetype], 2.0)
     if is_instance_valid(world) and move_velocity.length_squared() > 25.0 and world.movement_factor(global_position) < 1.0:
         draw_arc(Vector2.ZERO, body_radius + 6.0 + absf(sin(stride)) * 3.0, 0.0, TAU, 32, Color(0.46, 0.58, 0.20, 0.42), 1.5)

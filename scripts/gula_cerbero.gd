@@ -2,17 +2,17 @@ extends CharacterBody2D
 
 const WALK_SOLVER = preload("res://scripts/walk_solver.gd")
 const FRAME_SIZE := Vector2(384, 384)
-const VISUAL_SCALE := 0.40
+const VISUAL_SCALE := 0.57
 
 signal defeated
 signal hp_changed(current: int, maximum: int)
 
-const MAX_HP := 36
+const MAX_HP := 54
 var max_hp := MAX_HP
 var hp := MAX_HP
 var active := true
 var dead := false
-var body_radius := 62.0
+var body_radius := 68.0
 var world: Variant
 var hero: Variant
 var cooldown := 1.5
@@ -70,7 +70,9 @@ func _physics_process(delta: float) -> void:
         cooldown -= delta
         var desired_velocity := Vector2.ZERO
         if distance > 90.0 and distance < 390.0 and hero.global_position.y < 390.0:
-            desired_velocity = global_position.direction_to(hero.global_position) * (48.0 if phase == 1 else 68.0)
+            desired_velocity = global_position.direction_to(hero.global_position) * (82.0 if phase == 1 else 112.0)
+        elif distance <= 90.0:
+            desired_velocity = global_position.direction_to(hero.global_position).orthogonal() * (70.0 if pattern % 2 == 0 else -70.0)
         elif global_position.distance_to(home) > 14.0 and distance > 430.0:
             desired_velocity = global_position.direction_to(home) * 46.0
         move_velocity = move_velocity.move_toward(desired_velocity, 240.0 * delta)
@@ -99,22 +101,30 @@ func _physics_process(delta: float) -> void:
     queue_redraw()
 
 func _can_step(point: Vector2) -> bool:
-    return point.distance_to(home) < 240.0 and point.y > 193.0 and point.y < 315.0 and world.can_walk(point, body_radius)
+    return point.distance_to(home) < 240.0 and point.y > 193.0 and point.y < 405.0 and world.can_walk(point, body_radius)
 
 func _release_attack() -> void:
+    AudioManager.cue("jefe")
     _play(_attack_key())
     preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_direction, 101.0, Color("eba452"))
     if dead or not is_instance_valid(hero) or not is_instance_valid(world):
         return
     var distance: float = global_position.distance_to(hero.global_position)
     match pattern:
-        0: # Mordida frontal.
+        0: # Mordida frontal con avance corto sobre la arena.
+            var step := attack_direction * 6.0
+            for i in range(5 if phase == 1 else 7):
+                var next := global_position + step
+                if not _can_step(next) or next.distance_to(hero.global_position) < body_radius + 10.0:
+                    break
+                global_position = next
+            distance = global_position.distance_to(hero.global_position)
             if distance < 120.0 and world.has_clear_path(global_position, hero.global_position, 5.0) and attack_direction.dot(global_position.direction_to(hero.global_position)) > 0.25:
                 hero.take_damage(2)
         1: # Aullido: tres proyectiles visibles que se pueden esquivar.
             var angles := [-0.24, 0.0, 0.24] if phase == 1 else [-0.45, -0.22, 0.0, 0.22, 0.45]
             for angle in angles:
-                world.spawn_projectile(global_position + attack_direction * 55.0, attack_direction.rotated(angle), true, 1)
+                world.spawn_projectile(global_position, attack_direction.rotated(angle), true, 1)
         2: # Zarpazo circular, con aviso visual durante la preparación.
             if distance < 170.0 and world.has_clear_path(global_position, hero.global_position, 5.0):
                 hero.take_damage(2)
@@ -122,16 +132,17 @@ func _release_attack() -> void:
 func take_damage(amount: int, _direction: Vector2) -> void:
     if dead or not active or not is_instance_valid(world) or not world.game_active:
         return
+    AudioManager.cue("impacto")
     hp = maxi(0, hp - maxi(0, amount))
     flash = 0.16
-    hurt_left = 0.28
-    windup = 0.0
+    hurt_left = 0.10 if windup <= 0.0 else 0.0
     cooldown = maxf(cooldown, 0.48)
     if phase == 1 and hp <= MAX_HP / 2:
         phase = 2
         cooldown = minf(cooldown, 0.6)
     hp_changed.emit(hp, MAX_HP)
     if hp == 0:
+        AudioManager.cue("muerte")
         dead = true
         active = false
         collision_layer = 0
@@ -140,6 +151,17 @@ func take_damage(amount: int, _direction: Vector2) -> void:
         defeated.emit()
     else:
         _play("hurt")
+
+func reset_encounter() -> void:
+    hp = max_hp
+    global_position = home
+    phase = 1
+    pattern = 0
+    cooldown = 1.5
+    windup = 0.0
+    hurt_left = 0.0
+    move_velocity = Vector2.ZERO
+    hp_changed.emit(hp, max_hp)
 
 func _attack_key() -> String:
     return "bite" if pattern == 0 else "howl" if pattern == 1 else "claw"

@@ -82,7 +82,7 @@ func _run() -> void:
         level.boss._physics_process(1.0 / 60.0)
         if frame % 6 == 0:
             trace.fill_rect(Rect2i(Vector2i(level.boss.global_position) - Vector2i(3, 3), Vector2i(6, 6)), Color("f2e65e"))
-        if not level.can_walk(level.boss.global_position, level.boss.body_radius) or level.boss.global_position.y >= 315.0:
+        if not level.can_walk(level.boss.global_position, level.boss.body_radius) or level.boss.global_position.y >= 405.0:
             _check(false, "Cerbero salió de la arena en fotograma %d" % frame)
             break
     _check(level.boss.global_position.distance_to(boss_start) > 5.0, "Cerbero no patrulla su arena")
