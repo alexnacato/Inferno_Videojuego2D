@@ -3,6 +3,7 @@ extends Control
 
 func _ready() -> void:
     Game.use_campaign()
+    AudioManager.enter("")
     _build()
 
 func _panel_style(bg: Color, border: Color) -> StyleBoxFlat:
@@ -29,11 +30,13 @@ func _button(text_value: String) -> Button:
     return b
 
 func _build() -> void:
-    var art: Sprite2D = Sprite2D.new()
-    art.texture = load("res://assets/world/limbo_restaurado.png")
-    art.position = Vector2(640, 360)
-    art.scale = Vector2(0.92, 0.92)
+    var art := TextureRect.new()
+    art.texture = preload("res://assets/world/limbo_restaurado.png")
+    art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    art.mouse_filter = Control.MOUSE_FILTER_IGNORE
     add_child(art)
+    art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     var shade: ColorRect = ColorRect.new()
     shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     shade.color = Color(0.035, 0.045, 0.060, 0.78)
@@ -50,12 +53,14 @@ func _build() -> void:
 
 var panel: PanelContainer
 var content: VBoxContainer
+var return_focus := -1
 const LEVELS := {
     "I · LIMBO": "Limbo", "II · LUJURIA": "Lujuria", "III · GULA": "Gula",
     "VII · VIOLENCIA": "Violencia", "IX · TRAICIÓN": "Traicion"
 }
 
-func _page(title: String) -> void:
+func _page(title: String, back_to: int = -1) -> void:
+    return_focus = back_to
     if is_instance_valid(content):
         panel.remove_child(content)
         content.queue_free()
@@ -72,45 +77,61 @@ func _option(label: String, action: Callable) -> Button:
     button.pressed.connect(action)
     return button
 
-func _show_main() -> void:
+func _show_main(focus_index: int = -1) -> void:
     _page("INFERNO · EL DESCENSO")
-    _option("Nueva partida", _confirm_new).grab_focus()
-    _option("Continuar partida anterior", _resume).disabled = not Game.has_save()
-    _option("Selección de niveles", _show_levels)
-    _option("Configuración", _show_settings)
-    _option("Salir", func() -> void: get_tree().quit())
+    var buttons := [
+        _option("Nueva partida", _confirm_new),
+        _option("Continuar partida anterior", _resume),
+        _option("Selección de niveles", _show_levels),
+        _option("Configuración", _show_settings),
+        _option("Salir", func() -> void: get_tree().quit()),
+    ]
+    buttons[1].disabled = not Game.has_save()
+    if buttons[1].disabled:
+        buttons[1].focus_mode = Control.FOCUS_NONE
+    var initial := (0 if buttons[1].disabled else 1) if focus_index < 0 else focus_index
+    buttons[initial].grab_focus()
+
+func _unhandled_key_input(event: InputEvent) -> void:
+    if return_focus >= 0 and event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
+        get_viewport().set_input_as_handled()
+        AudioManager.cue("menu")
+        _show_main(return_focus)
 
 func _confirm_new() -> void:
     if not Game.has_save():
         _new_game()
         return
-    _page("NUEVA PARTIDA")
-    content.add_child(_label("Se reemplazará el progreso de la campaña.", 17, Color("#29201c")))
-    _option("Volver", _show_main).grab_focus()
+    _page("NUEVA PARTIDA", 0)
+    _subtitle("Se reemplazará el progreso de la campaña.")
+    _option("Volver", _show_main.bind(0)).grab_focus()
     _option("Iniciar nueva campaña", _new_game)
 
 func _show_levels() -> void:
-    _page("SELECCIÓN DE NIVELES")
-    content.add_child(_label("Modo libre · guardado independiente", 17, Color("#29201c")))
+    _page("SELECCIÓN DE NIVELES", 2)
+    _subtitle("Modo libre · el progreso de campaña se conserva")
     for label in LEVELS:
         var scene: String = LEVELS[label]
         var button := _option(label, _start_level.bind(scene))
         if scene == "Limbo":
             button.grab_focus()
-    _option("Volver", _show_main)
+    _option("Volver", _show_main.bind(2))
+
+func _subtitle(value: String) -> void:
+    var subtitle := _label(value, 17, Color("#29201c"))
+    subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    content.add_child(subtitle)
 
 func _show_settings() -> void:
-    _page("CONFIGURACIÓN")
-    var mute := CheckButton.new()
-    mute.text = "Audio activado"
-    mute.button_pressed = Game.audio_enabled
-    mute.add_theme_color_override("font_color", Color("#29201c"))
-    mute.add_theme_color_override("font_hover_color", Color("#29201c"))
-    mute.add_theme_color_override("font_pressed_color", Color("#29201c"))
-    mute.add_theme_color_override("font_focus_color", Color("#29201c"))
-    content.add_child(mute)
-    mute.toggled.connect(func(enabled: bool) -> void: Game.set_audio(enabled, Game.audio_volume))
+    _page("CONFIGURACIÓN", 3)
+    var audio := _button("Audio · " + ("Activado" if Game.audio_enabled else "Silenciado"))
+    content.add_child(audio)
+    audio.pressed.connect(func() -> void:
+        Game.set_audio(not Game.audio_enabled, Game.audio_volume)
+        audio.text = "Audio · " + ("Activado" if Game.audio_enabled else "Silenciado"))
     var label := _label("Volumen  %d%%" % roundi(Game.audio_volume * 100), 18, Color("#29201c"))
+    label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     content.add_child(label)
     var slider := HSlider.new()
     slider.min_value = 0.0
@@ -119,11 +140,14 @@ func _show_settings() -> void:
     slider.value = Game.audio_volume
     slider.custom_minimum_size.y = 36.0
     content.add_child(slider)
+    slider.focus_entered.connect(func() -> void:
+        slider.add_theme_stylebox_override("grabber_area", slider.get_theme_stylebox("grabber_area_highlight")))
+    slider.focus_exited.connect(func() -> void: slider.remove_theme_stylebox_override("grabber_area"))
     slider.value_changed.connect(func(value: float) -> void:
         label.text = "Volumen  %d%%" % roundi(value * 100)
         Game.set_audio(Game.audio_enabled, value))
-    _option("Volver", _show_main)
-    mute.grab_focus()
+    _option("Volver", _show_main.bind(3))
+    audio.grab_focus()
 
 func _new_game() -> void:
     Game.use_campaign()

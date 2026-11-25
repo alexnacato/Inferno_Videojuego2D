@@ -40,6 +40,14 @@ func _run() -> void:
     await create_timer(0.9).timeout
     _check_scene("Transicion")
     _check(bool(game.progress["limbo_completed"]), "No se conserva el progreso del Limbo")
+    _press_button(current_scene, "VOLVER AL MENÚ PRINCIPAL")
+    await process_frame
+    await process_frame
+    _check_scene("MenuPrincipal")
+    _press_button(current_scene, "Continuar partida anterior")
+    await process_frame
+    await process_frame
+    _check_scene("Transicion")
     _press_button(current_scene, "CONTINUAR A LUJURIA")
     await create_timer(0.9).timeout
     _check_scene("Lujuria")
@@ -183,6 +191,35 @@ func _run() -> void:
     if current_scene != null and current_scene.name == "Traicion":
         _check(current_scene.hero.dash_duration > 0.18, "La esquiva ganada en Violencia se pierde en Traición")
         _check(game.next_scene() == "res://scenes/Traicion.tscn", "Continuar partida no conserva Traición")
+        var traicion: Node = current_scene
+        traicion.hud._select(0)
+        for seal in ["SelloOeste", "SelloEste"]:
+            traicion._break_seal(traicion.markers.get_node(seal))
+            traicion.hud._select(0)
+        for soul in ["alma_ugolino", "alma_bocca"]:
+            traicion._talk_soul(soul)
+            traicion.hud._select(0)
+            traicion.hud._select(0)
+        _check(not is_instance_valid(traicion.boss), "Lucifer aparece con guardianes vivos")
+        for entry in traicion.ENCOUNTERS.values():
+            traicion._spawn_enemies(entry[1])
+        for enemy in traicion.foes.get_children():
+            enemy.take_damage(100, Vector2.DOWN)
+        _check(is_instance_valid(traicion.boss), "Lucifer no aparece en campaña")
+        if is_instance_valid(traicion.boss):
+            traicion.boss.take_damage(100, Vector2.DOWN)
+            traicion._use_marker(traicion.markers.get_node("Salida"))
+            await create_timer(0.9).timeout
+            _check_scene("FinTraicion")
+            _check(game.next_scene() == "res://scenes/FinTraicion.tscn", "Continuar partida no lleva al final de Traición")
+            _press_button(current_scene, "VOLVER AL MENÚ PRINCIPAL")
+            await process_frame
+            await process_frame
+            _check_scene("MenuPrincipal")
+            _press_button(current_scene, "Continuar partida anterior")
+            await process_frame
+            await process_frame
+            _check_scene("FinTraicion")
     _finish()
 
 func _press_button(screen: Node, caption: String) -> void:

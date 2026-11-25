@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=6 format=3]
+[gd_resource type="Theme" load_steps=9 format=3]
 
 [sub_resource type="StyleBoxFlat" id="normal"]
 bg_color = Color(0.9059, 0.8706, 0.8157, 1.0000)
@@ -49,9 +49,8 @@ content_margin_right = 8.0
 content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxFlat" id="focus"]
-bg_color = Color(0.0000, 0.0000, 0.0000, 0.0000)
-border_color = Color(0.4588, 0.2588, 0.1412, 1.0000)
-draw_center = false
+bg_color = Color(1.0000, 0.8314, 0.5059, 0.91)
+border_color = Color(0.3882, 0.2235, 0.1020, 1.0000)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
@@ -81,11 +80,38 @@ content_margin_top = 8.0
 content_margin_right = 8.0
 content_margin_bottom = 8.0
 
+[sub_resource type="StyleBoxFlat" id="slider_track"]
+bg_color = Color(0.29, 0.25, 0.22, 1.0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+content_margin_top = 5.0
+content_margin_bottom = 5.0
+
+[sub_resource type="StyleBoxFlat" id="slider_fill"]
+bg_color = Color(0.66, 0.39, 0.16, 1.0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
+[sub_resource type="StyleBoxFlat" id="slider_fill_active"]
+bg_color = Color(0.90, 0.58, 0.24, 1.0)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_left = 5
+corner_radius_bottom_right = 5
+
 [resource]
+HSlider/styles/slider = SubResource("slider_track")
+HSlider/styles/grabber_area = SubResource("slider_fill")
+HSlider/styles/grabber_area_highlight = SubResource("slider_fill_active")
 Button/font_sizes/font_size = 17
 Button/styles/normal = SubResource("normal")
 Button/styles/hover = SubResource("hover")
 Button/styles/pressed = SubResource("pressed")
+Button/styles/hover_pressed = SubResource("pressed")
 Button/styles/focus = SubResource("focus")
 Button/styles/disabled = SubResource("disabled")
 Button/colors/font_color = Color(0.1412, 0.1098, 0.0941, 1.0000)

@@ -2,7 +2,6 @@ extends Control
 ## Pantalla entre capítulos: mantiene el progreso moral y permite continuar.
 
 func _ready() -> void:
-    Game.enter_lujuria()
     var bg: TextureRect = TextureRect.new()
     bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
     bg.texture = load("res://assets/lujuria/world/lujuria_base.png")
@@ -16,8 +15,7 @@ func _ready() -> void:
     add_child(veil)
 
     var panel: PanelContainer = PanelContainer.new()
-    panel.position = Vector2(279, 133)
-    panel.custom_minimum_size = Vector2(722, 461)
+    panel.custom_minimum_size.x = 722.0
     var style: StyleBoxFlat = StyleBoxFlat.new()
     style.bg_color = Color("#e6e2dc")
     style.border_color = Color("#7b3f9e")
@@ -25,7 +23,10 @@ func _ready() -> void:
     style.set_corner_radius_all(11)
     style.set_content_margin_all(24)
     panel.add_theme_stylebox_override("panel", style)
-    add_child(panel)
+    var center := CenterContainer.new()
+    add_child(center)
+    center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    center.add_child(panel)
 
     var box: VBoxContainer = VBoxContainer.new()
     box.add_theme_constant_override("separation", 20)
@@ -41,8 +42,15 @@ func _ready() -> void:
     var continue_button: Button = Button.new()
     continue_button.text = "CONTINUAR A LUJURIA"
     continue_button.custom_minimum_size = Vector2(335, 55)
-    continue_button.pressed.connect(func() -> void: Game.cross_threshold("res://scenes/Lujuria.tscn"))
+    continue_button.pressed.connect(func() -> void:
+        Game.enter_lujuria()
+        Game.cross_threshold("res://scenes/Lujuria.tscn"))
     box.add_child(continue_button)
+    var menu := Button.new()
+    menu.text = "VOLVER AL MENÚ PRINCIPAL"
+    menu.custom_minimum_size.y = 50.0
+    menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))
+    box.add_child(menu)
     continue_button.grab_focus()
 
     var fade: ColorRect = ColorRect.new()

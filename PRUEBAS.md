@@ -1,6 +1,6 @@
 # Plan de pruebas en Godot 4 — Proyecto unificado
 
-**Prioridad 1: importación y compilación.** Importa `project.godot` en Godot 4.3+, deja terminar la importación, abre la pestaña **Errores** y comprueba que no aparezcan errores de parser GDScript ni dependencias faltantes. Si aparece alguno, registra el **archivo y número de línea**: no hay que ocultarlo ni ignorarlo.
+**Prioridad 1: importación y compilación.** Importa `project.godot` en Godot 4.7.2, deja terminar la importación, abre la pestaña **Errores** y comprueba que no aparezcan errores de parser GDScript ni dependencias faltantes. Si aparece alguno, registra el **archivo y número de línea**: no hay que ocultarlo ni ignorarlo.
 
 **Prioridad 2: Limbo.** Inicia partida nueva; mueve a Dante con WASD y flechas; verifica escala de sprite, esquiva, colisiones de estanques/estatuas, interacción con Virgilio, lectura de la inscripción, orden de tres santuarios, decisiones de Elio y Livia, cuadros de pergamino, retratos, minimapa, pausa y guardado. Prueba Espacio junto a ambas orillas de los lagos: debe saltar y aterrizar en el camino opuesto; al caminar o esquivar, el agua debe bloquear el paso. Antes del desbloqueo, la puerta debe permanecer cerrada.
 
@@ -20,7 +20,13 @@
 
 **Prioridad 10: Traición después de Violencia.** En **Violencia completada**, pulsa **Continuar a Traición**. Comprueba que aparece Cocito, que Redención y Rigor no se reinician y que la esquiva mejorada conserva duración, protección y recarga tras cerrar y continuar la partida.
 
+**Prioridad 11.** En Traición, activa F3 para comparar las colisiones con el mapa. Rodea los monumentos y las columnas. Combate contra el custodio, el sabueso y el espectro, rompe ambos juramentos y toma las decisiones de Ugolino y Bocca. Lee la inscripción y enciende el brasero. Comprueba el hielo fino, las dos fases de Lucifer y la ventana de daño marcada por su anillo dorado. Deja que Dante caiga y verifica que vuelve al último punto de descanso sin proyectiles pendientes. Guarda y continúa para comprobar que los guardianes vencidos no reaparecen. Vence a Lucifer, usa la salida y verifica que **Continuar** conserva la pantalla final.
+
 ### Verificación automatizada
+
+`godot --headless --path . --script res://tests/menu_flow_smoke.gd`
+
+La prueba de menús necesita un `APPDATA` temporal sin campaña previa. Comprueba botones con eventos de teclado y ratón, configuración, selección de niveles, pausa y cierres. Para generar capturas, ejecuta el mismo comando sin `--headless` y define `INFERNO_UI_CAPTURES` con la ruta de una carpeta de salida existente.
 
 `godot --headless --path . --script res://tests/navigation_smoke.gd`
 
@@ -42,4 +48,6 @@
 
 `godot --headless --path . --script res://tests/five_circles_smoke.gd`
 
-`navigation_smoke.gd` comprueba las rutas de Limbo y Lujuria; `lujuria_enemigos_smoke.gd` simula sus cinco tipos enemigos. Las pruebas de Gula revisan objetivos, enemigos y navegación. Las pruebas de Violencia cubren 50 comprobaciones del nivel, 52 de guardianes y la integración con guardado, HUD y recompensa; `five_circles_smoke.gd` recorre los cinco escenarios. Estas pruebas usan guardados aislados bajo `.godot/`. La revisión visual y de audio sigue requiriendo una partida manual.
+`godot --headless --path . --script res://tests/traicion_smoke.gd`
+
+`navigation_smoke.gd` comprueba las rutas de Limbo y Lujuria; `lujuria_enemigos_smoke.gd` simula sus cinco tipos enemigos. Las pruebas de Gula revisan objetivos, enemigos y navegación. Las pruebas de Violencia cubren 50 comprobaciones del nivel, 57 de guardianes y la integración con guardado, HUD y recompensa; `five_circles_smoke.gd` recorre los cinco escenarios. Las pruebas que pasan por el menú y `traicion_smoke.gd` usan el guardado de usuario. En Windows, ejecútalas con `APPDATA` apuntando a una carpeta temporal para aislarlas de tu campaña. La revisión visual y de audio sigue requiriendo una partida manual.

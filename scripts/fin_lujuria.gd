@@ -20,8 +20,7 @@ func _ready() -> void:
     shade.color = Color(0.035, 0.020, 0.05, 0.86)
     add_child(shade)
     var panel: PanelContainer = PanelContainer.new()
-    panel.position = Vector2(302, 26)
-    panel.custom_minimum_size = Vector2(676, 497)
+    panel.custom_minimum_size.x = 676.0
     var style: StyleBoxFlat = StyleBoxFlat.new()
     style.bg_color = Color("#e8e3df")
     style.border_color = Color("#7b3f9e")
@@ -29,7 +28,10 @@ func _ready() -> void:
     style.set_corner_radius_all(10)
     style.set_content_margin_all(22)
     panel.add_theme_stylebox_override("panel", style)
-    add_child(panel)
+    var center := CenterContainer.new()
+    add_child(center)
+    center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    center.add_child(panel)
     var stack: VBoxContainer = VBoxContainer.new()
     stack.add_theme_constant_override("separation", 12)
     panel.add_child(stack)
@@ -47,15 +49,15 @@ func _ready() -> void:
     if red > rig:
         path_title = "TU VÍA: LA MISERICORDIA"
         path_text = "Tu compasión pesó más que tu severidad. Las almas a las que diste nombre y respiro caminarán contigo: en la Gula, recordarás sus voces cuando el lodo dificulte cada paso."
-        path_color = "#7b9e6b"
+        path_color = "#365a38"
     elif rig > red:
         path_title = "TU VÍA: EL JUICIO"
         path_text = "Tu severidad pesó más que tu compasión. Las almas cargan tu veredicto como plomo: en la Gula, Dante descenderá con el peso de haber condenado, y ningún consuelo lo aliviará."
-        path_color = "#9e6b4f"
+        path_color = "#74412d"
     else:
         path_title = "TU VÍA: LA BALANZA EQUILIBRADA"
-        path_text = "Ni misericordia firme ni juicio firme: tu balanza quedó pareja. Las almas te recordarán como un peregrino que dudo, y la duda también deja huella en los círculos que aguardan."
-        path_color = "#7b6b9e"
+        path_text = "Ni misericordia firme ni juicio firme: tu balanza quedó pareja. Las almas te recordarán como un peregrino que dudó, y la duda también deja huella en los círculos que aguardan."
+        path_color = "#574575"
     var path_label: Label = _label(path_title, 26)
     path_label.add_theme_color_override("font_color", Color(path_color))
     stack.add_child(path_label)
@@ -66,7 +68,7 @@ func _ready() -> void:
     verdicts.add_theme_constant_override("separation", 4)
     for soul_id in VEREDICTOS.keys():
         var decided_text: String = str(Game.progress.get(soul_id, ""))
-        var line: String = VEREDICTOS[soul_id][0] if decided_text == "redencion" else VEREDICTOS[soul_id][1] if not decided_text.is_empty() else VEREDICTOS[soul_id][0]
+        var line: String = VEREDICTOS[soul_id][0] if decided_text == "redencion" else VEREDICTOS[soul_id][1] if not decided_text.is_empty() else str(VEREDICTOS[soul_id][0]).get_slice("·", 0).strip_edges() + "  ·  Sin decisión"
         var row: Label = _label(line, 16)
         row.add_theme_color_override("font_color", Color("#5a3f68"))
         verdicts.add_child(row)
@@ -82,11 +84,13 @@ func _ready() -> void:
     continue_button.pressed.connect(func() -> void:
         Game.enter_gula()
         Game.cross_threshold("res://scenes/Gula.tscn"))
+    continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     actions.add_child(continue_button)
     var menu: Button = Button.new()
     menu.text = "VOLVER AL MENÚ PRINCIPAL"
     menu.custom_minimum_size = Vector2(287, 52)
     menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))
+    menu.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     actions.add_child(menu)
     continue_button.grab_focus()
 

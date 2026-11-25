@@ -12,17 +12,15 @@ Los cinco escenarios comparten interfaz, decisiones morales y un archivo de guar
 
 ## Abrir y jugar
 
-En esta carpeta puedes abrir `JUGAR_RECORRIDO.bat` para iniciar el juego con el Godot 4.7.2 situado junto al proyecto. En el menú elige **Comenzar un nuevo viaje**.
-
 1. En **Godot 4.7.2**, selecciona **Importar**, elige el `project.godot` de esta carpeta y espera la importación de imágenes/audio.
-2. Pulsa **F5**. El menú principal permite comenzar, continuar o jugar directamente Traición.
+2. Pulsa **F5**. El menú principal permite comenzar, continuar o seleccionar un círculo en el modo libre. Navega con las flechas o Tab, confirma con Enter y usa Escape para regresar de Configuración o de la selección de niveles.
 3. En el **Limbo**, resuelve Memoria → Saber → Compasión, escucha a Elio y Livia, y abre la puerta norte.
 4. Aparece una pantalla de transición. Pulsa **Continuar a Lujuria** y Dante llegará al segundo círculo.
 5. En **Lujuria**, activa Memoria → Aliento → Juicio, escucha a Paolo y Francesca, derrota a los demonios y a Minos, y abre la puerta norte.
 6. En **Lujuria completada**, pulsa **Continuar a Gula**.
 7. En **Gula**, atraviesa el lodo, hunde las dos ofrendas, escucha a Daria y Olmo, derrota a Cerbero y abre la puerta norte.
 8. En **Gula completada**, pulsa **Continuar a Violencia**. Cruza el Flegetonte, enciende Contención → Memoria → Tregua, escucha al guardia y al testigo y derrota al Minotauro.
-9. En **Violencia completada**, pulsa **Continuar a Traición**. Rompe los dos juramentos, escucha a Ugolino y Bocca, vence a Lucifer y cruza la salida.
+9. En **Violencia completada**, pulsa **Continuar a Traición**. Derrota a los cinco guardianes de Cocito, rompe los dos juramentos y escucha a Ugolino y Bocca. Enciende el brasero central para guardar el punto de regreso. Dante recupera la salud al despertar Lucifer. Esquiva sus ataques y contraataca cuando el anillo dorado señale su recuperación. Después de vencerlo, cruza la salida.
 
 ### Controles
 
@@ -44,7 +42,7 @@ En esta carpeta puedes abrir `JUGAR_RECORRIDO.bat` para iniciar el juego con el 
 - **Progreso:** `scripts/game_state.gd` es un autoload llamado `Game`. Usa **un solo archivo** `user://inferno_save_v2.json`; Redención y Rigor se acumulan a través de los círculos. Violencia guarda sus votos, decisiones, guardianes y jefe en una sección propia.
 - **Transición:** el final del Limbo lleva a `Transicion.tscn` y después a `Lujuria.tscn`. Volver al menú y elegir **Continuar** lleva al capítulo actual.
 - **Lujuria:** se preservaron el mapa, el viento, los sellos, las almas, las oleadas enemigas, Minos y los proyectiles. Sus recursos están en `assets/lujuria/` y sus scripts empiezan con `lujuria_` para evitar conflictos.
-- **Gula:** un mapa ilustrado nuevo se montó en Godot como `Sprite2D`; polígonos `Polygon2D` editables delimitan suelo y lodo. Incluye dos ofrendas que se hunden, dos decisiones morales y Cerbero con tres ataques. Consulta [GULA_ESCENARIO.md](GULA_ESCENARIO.md) para la explicación de diseño y la procedencia del arte.
+- **Gula:** un mapa ilustrado nuevo se montó en Godot como `Sprite2D`; polígonos `Polygon2D` editables delimitan suelo y lodo. Incluye dos ofrendas que se hunden, dos decisiones morales y Cerbero con tres ataques.
 - **Violencia:** el mapa y sus recursos se copiaron desde `C:\Users\alexa\Proyecto` a `assets/violencia/`; `scenes/Violencia.tscn` usa el Dante y el HUD de este proyecto. La pantalla final de Gula abre Violencia y la de Violencia abre Traición. La victoria ante el Minotauro mejora la esquiva y conserva la mejora en Traición.
 - **Movimiento y colisiones:** Dante recorre el suelo visible con una zona de apoyo ajustada a sus pies. Al tocar un borde conserva el avance hasta él y se desliza por las curvas sin atravesarlas. En Limbo no puede caminar sobre los lagos; Espacio salta entre orillas cuando hay un aterrizaje seguro. En Lujuria se pueden recorrer las plazas laterales y se bloquean los huecos bajo sus balcones; el viento no arrastra a Dante en reposo y los enemigos no crean muros móviles.
 - **Enemigos:** patrullan, buscan la última posición conocida de Dante y siguen rutas alrededor de la estatua; su animación de marcha responde al desplazamiento real. Los diablillos intentan flanquear, los espectros conservan distancia y Minos permanece en su plataforma. Cada tipo tiene un tono y contorno discretos, sombra, barra y aviso de ataque propios para distinguirlo de la piedra clara del mapa. La [vista de colocación](assets/lujuria/world/lujuria_colocacion_enemigos.png) muestra su escala y posición inicial respecto a Dante.
@@ -99,6 +97,6 @@ Para probar un círculo directamente, abre su escena en el editor y ejecútala c
 
 ## Comprobación
 
-La importación y las pruebas automáticas se ejecutaron con **Godot 4.7.2**. `violencia_full_smoke.gd` pasó 50 comprobaciones y `violencia_guardians_smoke.gd` pasó 52; `five_circles_smoke.gd` recorrió Limbo → Lujuria → Gula → Violencia → Traición.
+La importación y las pruebas automáticas se ejecutaron con **Godot 4.7.2**. `violencia_full_smoke.gd` pasó 50 comprobaciones y `violencia_guardians_smoke.gd` pasó 57; `five_circles_smoke.gd` recorrió Limbo → Lujuria → Gula → Violencia → Traición hasta la pantalla final.
 
 Para repetir las pruebas desde la carpeta del proyecto, usa los comandos de [PRUEBAS.md](PRUEBAS.md). La revisión visual y de audio sigue requiriendo una partida manual en una ventana de Godot.
