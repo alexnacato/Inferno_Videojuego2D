@@ -55,7 +55,7 @@ func _run() -> void:
 	for bullet in level.bullets.get_children():
 		bullet.queue_free()
 	await process_frame
-	boss.take_damage(20, Vector2.DOWN)
+	boss.take_damage(ceili(boss.max_hp / 2.0), Vector2.DOWN)
 	boss.windup = 0.0
 	boss.recovery = 1.0
 	boss._physics_process(0.016)
@@ -65,6 +65,7 @@ func _run() -> void:
 		bullet.queue_free()
 	await process_frame
 	boss.attack_target = Vector2.DOWN
+	boss.boss_pattern = 0
 	boss._release_attack()
 	_check(level.bullets.get_child_count() == 7, "Minos no lanza siete proyectiles en la segunda fase")
 	level.queue_free()

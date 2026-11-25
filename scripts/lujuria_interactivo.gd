@@ -8,6 +8,7 @@ var completed := false
 var near := false
 var elapsed := 0.0
 var base_art_y := 0.0
+const VISUAL = preload("res://scripts/interaction_visual.gd")
 @onready var art: Sprite2D = $Sprite2D
 
 func _ready() -> void:
@@ -20,9 +21,9 @@ func _ready() -> void:
         _: texture_path += "sello.png"
     art.texture = load(texture_path)
     if kind == "virgilio" or kind == "paolo" or kind == "francesca":
-        var scale_factor: float = 0.084 if kind == "virgilio" else 0.080
+        var scale_factor: float = 0.106 if kind == "virgilio" else 0.096
         art.scale = Vector2.ONE * scale_factor
-        preload("res://scripts/enemy_contrast.gd").apply(art)
+        VISUAL.spirit(art, kind == "virgilio")
         art.position.y = -768.0 * scale_factor
         art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
         if kind != "virgilio":
@@ -37,8 +38,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     elapsed += delta
-    if kind == "sello" or kind == "puerta":
-        art.position.y = base_art_y + sin(elapsed * 2.2) * 2.0
+    art.position.y = base_art_y + sin(elapsed * 2.2) * (2.0 if kind in ["sello", "puerta"] else 6.0)
     queue_redraw()
 
 func set_done(value: bool) -> void:
@@ -50,6 +50,8 @@ func set_done(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if completed and kind != "puerta":
+        VISUAL.seen(self)
     if kind == "paolo" or kind == "francesca" or kind == "virgilio":
         draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.32))
         draw_circle(Vector2.ZERO, 21.0, Color(0.02, 0.01, 0.04, 0.32))

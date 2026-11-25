@@ -49,7 +49,6 @@ var pulse_at: Vector2 = Vector2.ZERO
 var pulse_left: float = 0.0
 var dialogue_context: String = ""
 var enemy_boss: Variant
-var ambient: AudioStreamPlayer
 var effect: AudioStreamPlayer
 var navigation_grids: Dictionary = {}
 const NAV_CELL: int = 24
@@ -79,8 +78,10 @@ var right_side_floor: PackedVector2Array = PackedVector2Array([
 ])
 
 var gate_art: Node2D
+var npc_positions := PackedVector2Array()
 
 func _ready() -> void:
+    preload("res://scripts/foreground.gd").install($MapaPintado, hero, PackedVector2Array([Vector2(232,226),Vector2(242,186),Vector2(264,162),Vector2(280,155),Vector2(299,161),Vector2(315,183),Vector2(329,226),Vector2(317,242),Vector2(247,242)]), 240.0)
     gate_art = preload("res://scripts/gate_visual.gd").install(self, Rect2(670, 43, 107, 115), Color("e3afff"))
     Game.enter_lujuria()
     hero.world = self
@@ -93,6 +94,9 @@ func _ready() -> void:
     fx.world_ref = self
     gate_art.z_index = 1
     _make_interactives()
+    for marker in markers.get_children():
+        if str(marker.kind) in ["paolo", "francesca", "virgilio"]:
+            npc_positions.append(marker.global_position)
     _build_navigation()
     _load_state()
     hero.restore(hero.max_health, checkpoint)
@@ -107,21 +111,13 @@ func _ready() -> void:
         _toast("Continuamos el descenso. Las decisiones del Limbo permanecen.")
 
 func _start_audio() -> void:
-    ambient = AudioStreamPlayer.new()
-    ambient.stream = load("res://assets/lujuria/audio/lujuria_ambiente.wav")
-    ambient.volume_db = -19.0
-    add_child(ambient)
-    if ambient.stream != null:
-        ambient.finished.connect(func() -> void: ambient.play())
-        ambient.play()
     effect = AudioStreamPlayer.new()
+    effect.bus = "SFX"
     effect.stream = load("res://assets/lujuria/audio/sello.wav")
     effect.volume_db = -12.0
     add_child(effect)
 
 func _exit_tree() -> void:
-    if is_instance_valid(ambient):
-        ambient.stop()
     if is_instance_valid(effect):
         effect.stop()
 
@@ -244,13 +240,13 @@ func _soul_dialogue(uid: String) -> void:
     elif uid == "paolo":
         _open_dialogue("paolo", "PAOLO · ALMA DE LA LUJURIA",
             "Leíamos la historia de Lanzarote cuando mi hermano nos mató. Amé a su esposa y morí por ese beso, y el viento nos arrastra juntos sin dejarme pensar. Tu palabra define mi tormento: ¿puedo cargar la culpa sabiendo que ella me amó, o merezco que el viento se vuelva más cruel?",
-            ["Aliviar su culpa: el amor los venció a los dos · Redención",
-             "Recordarle que la pasión no disculpa la traición · Rigor"])
+            ["Aliviar su culpa: el amor los venció a los dos",
+             "Recordarle que la pasión no disculpa la traición"])
     else:
         _open_dialogue("francesca", "FRANCESCA · ALMA DE LA LUJURIA",
             "Sigo leyendo el mismo libro que leíamos la noche en que morimos. Sabía lo que hacía y no dejé de leer: elegí cada página. Dime algo que yo no sepa: ¿aún se puede aprender después de caer, o mi historia ya se terminó de escribir?",
-            ["Decirle que aprender aún puede redimirla · Redención",
-             "Decirle que su caída ya escribió el final · Rigor"])
+            ["Decirle que aprender aún puede redimirla",
+             "Decirle que su caída ya escribió el final"])
 
 func _activate_seal(marker: Variant) -> void:
     var uid: String = str(marker.uid)
@@ -277,7 +273,7 @@ func _show_hint() -> void:
         var names: Array[String] = ["Memoria", "Aliento", "Juicio"]
         message = "Busca el sello de " + names[seals.size()] + ". Recuerda el orden de los vientos."
     elif decided.size() < 2:
-        message = "Escucha a Paolo y Francesca. Tu juicio alterará Redención y Rigor."
+        message = "Escucha a Paolo y Francesca y decide qué decirles."
     elif not boss_defeated:
         message = "Minos espera en la plataforma superior. Supera a sus demonios y esquiva las ráfagas."
     else:
@@ -291,7 +287,11 @@ func _open_dialogue(context: String, speaker: String, message: String, choices: 
     hud.show_dialogue(speaker, message, choices)
 
 func _answer_dialogue(choice: int) -> void:
-    if dialogue_context == "intro":
+    if dialogue_context == "death":
+        if is_instance_valid(enemy_boss) and not enemy_boss.dead:
+            enemy_boss.reset_encounter()
+        hero.restore(hero.max_health, SPAWN)
+    elif dialogue_context == "intro":
         intro_seen = true
     elif dialogue_context == "paolo" or dialogue_context == "francesca":
         if not decided.has(dialogue_context):
@@ -322,7 +322,7 @@ func _answer_dialogue(choice: int) -> void:
     hero.control_enabled = true
 
 func _toggle_pause() -> void:
-    if hud.dialogue_open:
+    if hud.dialogue_open or (not game_active and not paused):
         return
     paused = not paused
     game_active = not paused
@@ -352,14 +352,14 @@ func _on_hero_health_changed(current: int, maximum: int) -> void:
 
 func _on_hero_exhausted() -> void:
     game_active = false
-    _toast("Dante cae, pero su camino aún continúa...")
+    for shot in bullets.get_children():
+        shot.queue_free()
+    _save_state()
+    _toast("Dante ha caído. Regresa al inicio del círculo con su progreso guardado.", 4.5)
     await get_tree().create_timer(1.2).timeout
     if not is_inside_tree():
         return
-    hero.restore(hero.max_health, checkpoint)
-    hero.control_enabled = true
-    game_active = true
-    _toast("Dante regresa a su último punto de descanso.")
+    _open_dialogue("death", "VIRGILIO · LEVÁNTATE", "Dante regresará al inicio del círculo con su progreso guardado.", ["Volver al inicio"])
 
 func _complete_level() -> void:
     game_active = false
@@ -475,7 +475,7 @@ func spawn_projectile(start: Vector2, direction: Vector2, hostile: bool, hit_dam
     shot.direction = direction.normalized()
     shot.enemy_owned = hostile
     shot.damage = hit_damage
-    shot.speed = 258.0 if hostile else 355.0
+    shot.speed = 258.0 if hostile else 620.0
     shot.world = self
     bullets.add_child(shot)
 
@@ -508,14 +508,14 @@ func can_walk(p: Vector2, radius: float = 8.0) -> bool:
         var sample: Vector2 = p + offset * radius
         if not _is_ground(sample):
             return false
+        for npc_position in npc_positions:
+            if _in_ellipse(sample, npc_position, 17.0, 11.0):
+                return false
     return true
 
 func can_occupy_hero(p: Vector2, _dodging: bool = false) -> bool:
     if not can_walk(p, 10.0):
         return false
-    for marker in markers.get_children():
-        if str(marker.kind) in ["paolo", "francesca", "virgilio"] and _in_ellipse(p, marker.global_position, 17.0, 11.0):
-            return false
     # Los enemigos aplican daño por contacto, pero no forman muros móviles que
     # atrapen al jugador entre ellos y el borde de la plataforma.
     return true

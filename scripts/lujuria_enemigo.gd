@@ -10,9 +10,9 @@ const STATS := {
 	"carcelero": {"hp": 10, "speed": 74.0, "range": 85.0, "cooldown": 2.25, "damage": 2, "radius": 23.0, "name": "Carcelero de las Cadenas"},
 	"espectro": {"hp": 6, "speed": 103.0, "range": 230.0, "cooldown": 2.1, "damage": 1, "radius": 17.0, "name": "Espectro del Remolino"},
 	"furia": {"hp": 13, "speed": 107.0, "range": 77.0, "cooldown": 1.85, "damage": 2, "radius": 22.0, "name": "Furia del Anhelo"},
-	"minos": {"hp": 38, "speed": 55.0, "range": 250.0, "cooldown": 2.9, "damage": 2, "radius": 35.0, "name": "Minos, juez de los deseos"},
+	"minos": {"hp": 56, "speed": 118.0, "range": 250.0, "cooldown": 2.9, "damage": 2, "radius": 35.0, "name": "Minos, juez de los deseos"},
 }
-const VISUAL_SCALE := {"diablillo": 0.60, "carcelero": 0.82, "espectro": 0.72, "furia": 0.78, "minos": 0.93}
+const VISUAL_SCALE := {"diablillo": 1.05, "carcelero": 1.11, "espectro": 1.05, "furia": 1.09, "minos": 1.24}
 const COLORS := {
 	"diablillo": Color("e9a484"),
 	"carcelero": Color("aa8ec6"),
@@ -45,6 +45,7 @@ var attack_target := Vector2.DOWN
 var phase := 1
 var knockback := Vector2.ZERO
 var body_radius := 17.0
+var boss_pattern := 0
 var route: PackedVector2Array = PackedVector2Array()
 var route_time := 0.0
 var alert_left := 0.0
@@ -66,7 +67,7 @@ func _ready() -> void:
 	last_seen = anchor
 	patrol_target = anchor
 	var shape := CircleShape2D.new()
-	body_radius = float(STATS[archetype]["radius"])
+	body_radius = float(STATS[archetype]["radius"]) + (4.0 if archetype == "minos" else 3.0)
 	shape.radius = body_radius
 	$CollisionShape2D.shape = shape
 	var scale_factor: float = float(VISUAL_SCALE[archetype])
@@ -77,6 +78,12 @@ func _ready() -> void:
 	var material := ShaderMaterial.new()
 	material.shader = READABILITY_SHADER
 	var accent: Color = COLORS[archetype]
+	if windup > 0.0:
+		var attack_angle := attack_target.angle()
+		if archetype == "minos" and boss_pattern % 3 == 2:
+			draw_arc(Vector2.ZERO, 126.0, 0.0, TAU, 52, Color("#c4a0fb"), 2.0, true)
+		else:
+			draw_arc(Vector2.ZERO, body_radius + 24.0, attack_angle - 0.75, attack_angle + 0.75, 20, accent, 2.0, true)
 	accent.a = 0.60 if archetype == "espectro" else 0.52
 	material.set_shader_parameter("edge_color", accent)
 	material.set_shader_parameter("body_tint", BODY_TINT[archetype])
@@ -135,6 +142,11 @@ func _physics_process(delta: float) -> void:
 				desired_motion = _steer(anchor) * float(stats["speed"])
 		elif alert_left > 0.0:
 			var destination: Vector2 = hero.global_position if can_see_hero else last_seen
+			if archetype == "minos" and dist < 190.0:
+				var side := delta_to_hero.normalized().orthogonal() * (1.0 if boss_pattern % 2 == 0 else -1.0)
+				var orbit := global_position + (side - delta_to_hero.normalized() * 0.4) * 75.0
+				if can_enter_boss(orbit):
+					destination = orbit
 			if archetype == "espectro" and can_see_hero:
 				if dist < 125.0:
 					var retreat: Vector2 = global_position - delta_to_hero.normalized() * 85.0
@@ -215,7 +227,11 @@ func _steer(destination: Vector2) -> Vector2:
 		route.remove_at(0)
 	return global_position.direction_to(route[0]) if not route.is_empty() else Vector2.ZERO
 
+func can_enter_boss(point: Vector2) -> bool:
+	return world.can_occupy_enemy(point, self, body_radius)
+
 func _release_attack() -> void:
+	AudioManager.cue("jefe" if archetype == "minos" else "enemigo")
 	preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_target, 70.0, Color("e6a0ff"))
 	if dead or not is_instance_valid(world):
 		return
@@ -225,12 +241,21 @@ func _release_attack() -> void:
 	recovery = 0.34
 	var toward: Vector2 = attack_target.normalized()
 	if archetype == "espectro":
-		world.spawn_projectile(global_position + toward * 28.0, toward, true, 1)
+		world.spawn_projectile(global_position, toward, true, 1)
 	elif archetype == "minos":
+		boss_pattern += 1
+		if boss_pattern % 3 == 0:
+			world.pulse_wind(global_position, 290.0)
+			if global_position.distance_to(hero.global_position) < 126.0 and world.has_clear_path(global_position, hero.global_position):
+				hero.take_damage(2)
+			return
+		if boss_pattern % 3 == 2:
+			world.spawn_projectile(global_position, toward, true, 2)
+			return
 		var count := 7 if phase == 2 else 5
 		for i in range(count):
 			var arc: float = lerpf(-0.69, 0.69, float(i) / float(count - 1))
-			world.spawn_projectile(global_position + toward * 34.0, toward.rotated(arc), true, int(stats["damage"]))
+			world.spawn_projectile(global_position, toward.rotated(arc), true, int(stats["damage"]))
 		if phase == 2:
 			world.pulse_wind(global_position, 290.0)
 	elif archetype == "carcelero":
@@ -246,11 +271,13 @@ func _release_attack() -> void:
 func take_damage(amount: int, from_direction: Vector2 = Vector2.DOWN) -> void:
 	if dead or not active:
 		return
+	AudioManager.cue("impacto")
 	hp = maxi(0, hp - maxi(0, amount))
-	stagger = 0.19
+	stagger = 0.0 if archetype == "minos" else 0.19
 	knockback = from_direction.normalized() * (90.0 if archetype == "minos" else 175.0)
 	hp_changed.emit(hp, max_hp)
 	if hp <= 0:
+		AudioManager.cue("muerte")
 		dead = true
 		collision_layer = 0
 		collision_mask = 0
@@ -260,6 +287,18 @@ func take_damage(amount: int, from_direction: Vector2 = Vector2.DOWN) -> void:
 		_play("hurt")
 		alert_left = 3.0
 		last_seen = hero.global_position if is_instance_valid(hero) else anchor
+
+func reset_encounter() -> void:
+	hp = max_hp
+	global_position = anchor
+	phase = 1
+	boss_pattern = 0
+	windup = 0.0
+	recovery = 0.0
+	attack_cooldown = 1.0
+	move_velocity = Vector2.ZERO
+	knockback = Vector2.ZERO
+	hp_changed.emit(hp, max_hp)
 
 func _play(name: String) -> void:
 	if art.sprite_frames != null and art.sprite_frames.has_animation(name):
@@ -290,10 +329,16 @@ func _draw() -> void:
 	if dead:
 		return
 	var accent: Color = COLORS[archetype]
+	if windup > 0.0:
+		var attack_angle := attack_target.angle()
+		if archetype == "minos" and boss_pattern % 3 == 2:
+			draw_arc(Vector2.ZERO, 126.0, 0.0, TAU, 52, Color("#c4a0fb"), 2.0, true)
+		else:
+			draw_arc(Vector2.ZERO, body_radius + 24.0, attack_angle - 0.75, attack_angle + 0.75, 20, accent, 2.0, true)
 	if alert_left > 0.0 and archetype != "minos":
 		accent.a = 0.27
 		draw_arc(Vector2.ZERO, radius + 8.0, 0.0, TAU, 32, accent, 1.5)
-	if archetype != "minos" and (hp < max_hp or is_instance_valid(hero) and global_position.distance_to(hero.global_position) < 310.0):
+	if archetype != "minos":
 		var width: float = 96.0 if archetype == "minos" else clampf(80.0 * art.scale.x, 48.0, 68.0)
 		var top: float = art.position.y - (88.0 if archetype == "minos" else 72.0) * art.scale.y - 12.0
 		draw_rect(Rect2(-width / 2.0 - 2.0, top - 2.0, width + 4.0, 11.0), Color(0.06, 0.04, 0.09, 0.92))
