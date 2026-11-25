@@ -27,13 +27,21 @@ function pointInPolygon([x, y], poly) {
   return inside;
 }
 const floors = sections.filter(s => s.includes('parent="Suelo"')).map(polygonOf).filter(Boolean);
+const obstacles = sections.filter(s => s.includes('parent="Obstaculos"')).map(polygonOf).filter(Boolean);
 const hazards = sections.filter(s => s.includes('parent="HieloFino"')).map(polygonOf).filter(Boolean);
 const samples = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [.7071, .7071], [-.7071, .7071], [.7071, -.7071], [-.7071, -.7071]];
 function walk([x, y], radius = 10) {
-  return samples.every(([dx, dy]) => floors.some(p => pointInPolygon([x + dx * radius, y + dy * radius], p)));
+  return samples.every(([dx, dy]) => {
+    const sample = [x + dx * radius, y + dy * radius];
+    return floors.some(p => pointInPolygon(sample, p)) && !obstacles.some(p => pointInPolygon(sample, p));
+  });
 }
 assert(floors.length >= 5, 'missing walkable areas');
 assert(hazards.length >= 2, 'missing thin ice');
+assert(hazards.every(hazard => hazard.every(p => walk(p, 0))), 'thin ice extends past the visible floor');
+assert(!walk([250, 545]), 'monument is walkable');
+assert(!walk([80, 669]), 'column is walkable');
+assert(walk([348, 637]), 'visible west passage is blocked');
 assert(walk([724, 1000]), 'spawn outside floor');
 assert(walk([724, 355], 58), 'boss outside arena');
 assert(!walk([50, 200]), 'abyss is walkable');
@@ -63,5 +71,12 @@ for (const [file, width, height] of [
   assert.equal(image.readUInt32BE(16), width);
   assert.equal(image.readUInt32BE(20), height);
 }
-assert.equal(fs.readFileSync(path.join(root, 'assets/traicion/enemies/lucifer.png'))[25], 6, 'boss sprite has no alpha channel');
+for (const enemy of ['lucifer', 'custodio', 'sabueso', 'espectro']) {
+  const art = fs.readFileSync(path.join(root, 'assets/traicion/enemies', enemy + '.png'));
+  assert.equal(art[25], 6, enemy + ' has no alpha channel');
+  if (enemy !== 'lucifer') {
+    assert.equal(art.readUInt32BE(16), 192);
+    assert.equal(art.readUInt32BE(20), 192);
+  }
+}
 console.log(`Traición: ${markerSections.length} objetivos alcanzables, ${queue.length} celdas recorribles, imágenes válidas.`);

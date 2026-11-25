@@ -32,39 +32,57 @@ mouse_filter = 2
 
 [node name="Entrada" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
-polygon = PackedVector2Array(620, 1086, 820, 1086, 823, 713, 615, 713)
+polygon = PackedVector2Array(595, 1086, 847, 1086, 824, 1002, 821, 825, 840, 749, 876, 687, 803, 657, 645, 657, 572, 687, 608, 749, 627, 825, 625, 1002)
 
 [node name="ExplanadaSur" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
-polygon = PackedVector2Array(620, 825, 555, 733, 500, 660, 445, 610, 394, 555, 380, 515, 1068, 515, 1054, 555, 1003, 610, 948, 660, 893, 733, 828, 825)
+polygon = PackedVector2Array(566, 640, 507, 633, 436, 648, 389, 677, 343, 626, 381, 516, 459, 545, 520, 554, 570, 535, 566, 496, 882, 496, 878, 535, 928, 554, 989, 545, 1067, 516, 1105, 626, 1059, 677, 1012, 648, 941, 633, 882, 640, 838, 699, 817, 755, 631, 755, 610, 699)
 
 [node name="PatioOeste" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
-polygon = PackedVector2Array(46, 554, 76, 468, 145, 425, 245, 406, 334, 431, 410, 488, 465, 540, 525, 625, 438, 670, 320, 715, 161, 718, 62, 680)
+polygon = PackedVector2Array(13, 593, 24, 548, 81, 516, 119, 477, 172, 451, 244, 430, 313, 447, 378, 478, 440, 532, 468, 587, 442, 640, 381, 680, 339, 714, 247, 735, 155, 724, 69, 691, 32, 647)
 
 [node name="PatioEste" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
-polygon = PackedVector2Array(1402, 554, 1372, 468, 1303, 425, 1203, 406, 1114, 431, 1038, 488, 983, 540, 923, 625, 1010, 670, 1128, 715, 1287, 718, 1386, 680)
+polygon = PackedVector2Array(1435, 593, 1424, 548, 1367, 516, 1329, 477, 1276, 451, 1204, 430, 1135, 447, 1070, 478, 1008, 532, 980, 587, 1006, 640, 1067, 680, 1109, 714, 1201, 735, 1293, 724, 1379, 691, 1416, 647)
 
 [node name="Arena" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
-polygon = PackedVector2Array(720, 613, 480, 565, 358, 480, 330, 370, 385, 265, 525, 218, 724, 207, 923, 218, 1063, 265, 1118, 370, 1090, 480, 968, 565)
+polygon = PackedVector2Array(720, 613, 563, 542, 533, 501, 467, 474, 405, 440, 364, 404, 342, 363, 352, 321, 390, 273, 490, 232, 590, 207, 724, 195, 858, 207, 958, 232, 1058, 273, 1096, 321, 1106, 363, 1084, 404, 1043, 440, 981, 474, 915, 501, 885, 542)
 
 [node name="Umbral" type="Polygon2D" parent="Suelo"]
 script = ExtResource("5_area")
 polygon = PackedVector2Array(594, 253, 614, 164, 834, 164, 854, 253)
+
+[node name="Obstaculos" type="Node2D" parent="."]
+
+[node name="MonumentoOeste" type="Polygon2D" parent="Obstaculos"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(174, 526, 201, 503, 294, 506, 323, 541, 312, 567, 269, 583, 216, 579, 181, 559)
+
+[node name="MonumentoEste" type="Polygon2D" parent="Obstaculos"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(1274, 526, 1247, 503, 1154, 506, 1125, 541, 1136, 567, 1179, 583, 1232, 579, 1267, 559)
+
+[node name="ColumnaOeste" type="Polygon2D" parent="Obstaculos"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(67, 658, 82, 654, 94, 668, 89, 681, 72, 678)
+
+[node name="ColumnaEste" type="Polygon2D" parent="Obstaculos"]
+script = ExtResource("5_area")
+polygon = PackedVector2Array(1381, 658, 1366, 654, 1354, 668, 1359, 681, 1376, 678)
 
 [node name="HieloFino" type="Node2D" parent="."]
 
 [node name="GrietaOeste" type="Polygon2D" parent="HieloFino"]
 script = ExtResource("5_area")
 tipo = "hielo_fino"
-polygon = PackedVector2Array(501, 658, 595, 595, 635, 678, 579, 762)
+polygon = PackedVector2Array(525, 607, 570, 563, 616, 598, 606, 653, 561, 630)
 
 [node name="GrietaEste" type="Polygon2D" parent="HieloFino"]
 script = ExtResource("5_area")
 tipo = "hielo_fino"
-polygon = PackedVector2Array(947, 658, 853, 595, 813, 678, 869, 762)
+polygon = PackedVector2Array(923, 607, 878, 563, 832, 598, 842, 653, 887, 630)
 
 [node name="GrietaArena" type="Polygon2D" parent="HieloFino"]
 script = ExtResource("5_area")
@@ -81,14 +99,14 @@ kind = "guia"
 caption = "ESCUCHAR A VIRGILIO"
 
 [node name="SelloOeste" type="Node2D" parent="Marcadores"]
-position = Vector2(270, 523)
+position = Vector2(250, 601)
 script = ExtResource("6_marker")
 uid = "sello_oeste"
 kind = "sello"
 caption = "ROMPER EL JURAMENTO DEL OESTE"
 
 [node name="SelloEste" type="Node2D" parent="Marcadores"]
-position = Vector2(1178, 523)
+position = Vector2(1198, 601)
 script = ExtResource("6_marker")
 uid = "sello_este"
 kind = "sello"
@@ -107,6 +125,20 @@ script = ExtResource("6_marker")
 uid = "alma_bocca"
 kind = "alma"
 caption = "ESCUCHAR A BOCCA"
+
+[node name="Inscripcion" type="Node2D" parent="Marcadores"]
+position = Vector2(667, 831)
+script = ExtResource("6_marker")
+uid = "inscripcion"
+kind = "inscripcion"
+caption = "LEER LA INSCRIPCIÓN"
+
+[node name="Brasero" type="Node2D" parent="Marcadores"]
+position = Vector2(724, 700)
+script = ExtResource("6_marker")
+uid = "brasero"
+kind = "brasero"
+caption = "ENCENDER EL BRASERO DE DESCANSO"
 
 [node name="Salida" type="Node2D" parent="Marcadores"]
 position = Vector2(724, 185)

@@ -2,7 +2,7 @@
 extends Node2D
 
 @export var uid := ""
-@export_enum("guia", "sello", "alma", "puerta") var kind := "sello"
+@export_enum("guia", "sello", "alma", "puerta", "inscripcion", "brasero") var kind := "sello"
 @export var caption := ""
 var completed := false
 var near := false
@@ -16,15 +16,17 @@ func _ready() -> void:
     art = Sprite2D.new()
     art.texture = preload("res://scripts/sprite_library.gd").frame(
         "res://assets/violencia/almas_virgilio.png", 1 if kind == "guia" else 0, 0, 2, 1, Vector2i(80, 128))
-    art.position.y = -56.0
+    art.position.y = -69.0
+    art.scale = Vector2.ONE * (1.19 if kind == "guia" else 1.06)
     art.self_modulate = Color("#e9d9ba") if kind == "guia" else Color("#cce8ff")
     add_child(art)
-    preload("res://scripts/enemy_contrast.gd").apply(art)
+    preload("res://scripts/interaction_visual.gd").spirit(art, kind == "guia")
 
 func _process(delta: float) -> void:
     phase += delta
     if is_instance_valid(art):
-        art.position.y = -56.0 + sin(phase * 1.5) * (2.5 if kind == "alma" else 0.7)
+        art.position.y = -69.0 + sin(phase * 1.5) * 5.0
+        art.modulate.a = 0.68 if completed else 1.0
     queue_redraw()
 
 func set_done(value: bool) -> void:
@@ -32,7 +34,24 @@ func set_done(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if completed and kind in ["sello", "alma"]:
+        preload("res://scripts/interaction_visual.gd").seen(self)
     if kind == "puerta":
+        return
+    if kind == "inscripcion":
+        draw_rect(Rect2(-12, -30, 24, 31), Color("#243851"))
+        draw_rect(Rect2(-12, -30, 24, 31), Color("#bddef2"), false, 2.0)
+        for y in [-23.0, -16.0, -9.0]:
+            draw_line(Vector2(-6.0, y), Vector2(6.0, y), Color("#9ec7e2"), 2.0)
+        return
+    if kind == "brasero":
+        var glow := Color("#fac18a") if completed else Color("#83c6eb")
+        draw_circle(Vector2.ZERO, 11.0, Color(0.03, 0.07, 0.12, 0.65))
+        draw_colored_polygon(PackedVector2Array([Vector2(-15, -16), Vector2(15, -16), Vector2(7, 0), Vector2(-7, 0)]), Color("#32445c"))
+        draw_line(Vector2(-15, -16), Vector2(15, -16), glow, 3.0, true)
+        draw_circle(Vector2(0, -24), 14.0, Color(glow, 0.22 if completed else 0.12))
+        if completed:
+            draw_circle(Vector2(0, -23), 6.0 + sin(phase * 8.0) * 1.7, glow)
         return
     if kind != "sello":
         if near:

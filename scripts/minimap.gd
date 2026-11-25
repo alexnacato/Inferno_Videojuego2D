@@ -87,20 +87,32 @@ func _draw_gula() -> void:
 func _draw_traicion() -> void:
     draw_rect(Rect2(6, 4, 178, 133), Color("#081b27"), true)
     draw_rect(Rect2(8, 6, 174, 129), Color("#5794a9"), false, 1.0)
-    var floor_color := Color("#476d7b")
-    draw_line(Vector2(97, 129), Vector2(97, 77), floor_color, 22.0)
-    draw_circle(Vector2(97, 56), 35.0, floor_color)
-    draw_line(Vector2(65, 69), Vector2(36, 70), floor_color, 18.0)
-    draw_line(Vector2(129, 69), Vector2(158, 70), floor_color, 18.0)
-    draw_circle(Vector2(37, 70), 14.0, floor_color)
-    draw_circle(Vector2(157, 70), 14.0, floor_color)
-    draw_circle(Vector2(37, 70), 4.0, Color("#9cecff") if altar_step > 0 else Color("#718b94"))
-    draw_circle(Vector2(157, 70), 4.0, Color("#9cecff") if altar_step > 1 else Color("#718b94"))
-    draw_circle(Vector2(97, 24), 5.0, Color("#d0faff") if door_open else Color("#637e89"))
-    if is_instance_valid(player):
-        var here := Vector2(8.0 + player.global_position.x / 1448.0 * 174.0, 6.0 + player.global_position.y / 1086.0 * 129.0)
-        draw_circle(here, 5.0, Color("#b35c56"))
-        draw_circle(here, 2.2, Color("#fff1e4"))
+    if not is_instance_valid(player) or not is_instance_valid(player.world):
+        return
+    var world = player.world
+    for area in world.floors.get_children():
+        var outline := PackedVector2Array()
+        for vertex in area.polygon:
+            outline.append(_traicion_pos(area.to_global(vertex)))
+        draw_colored_polygon(outline, Color("#476d7b"))
+    for marker in world.markers.get_children():
+        var color := Color("#8099af")
+        match marker.kind:
+            "sello", "puerta":
+                color = Color("#c4f5ff") if marker.completed else Color("#8099af")
+            "brasero":
+                color = Color("#fac18a") if marker.completed else Color("#658da7")
+            "alma":
+                color = Color("#b9c2ff") if marker.completed else Color("#9298bb")
+            _:
+                continue
+        draw_circle(_traicion_pos(marker.global_position), 3.0, color)
+    var here := _traicion_pos(player.global_position)
+    draw_circle(here, 5.0, Color("#b35c56"))
+    draw_circle(here, 2.2, Color("#fff1e4"))
+
+func _traicion_pos(p: Vector2) -> Vector2:
+    return Vector2(8, 6) + p / Vector2(1448, 1086) * Vector2(174, 129)
 
 const VIOLENCIA := preload("res://scripts/violencia_geometry.gd")
 var violencia_map := VIOLENCIA.new()
