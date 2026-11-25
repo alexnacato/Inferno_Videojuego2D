@@ -21,6 +21,7 @@ func _ready() -> void:
     var config: Dictionary = CONFIG[archetype]
     max_hp = config["hp"]
     hp = max_hp
+    AudioManager.foe_voice(archetype, uid)
     body_radius = config["radius"]
     anchor = position
     home = position
@@ -117,7 +118,7 @@ func choose_attack(distance: float) -> String:
     return "sweep" if distance<120 else "ash" if pattern==2 else "fire"
 
 func _release_guardian_attack() -> void:
-    AudioManager.cue("enemigo")
+    AudioManager.foe_voice(archetype)
     preload("res://scripts/combat_fx.gd").burst(self, global_position, charge_direction, 74.0, Color("ffc17b"))
     attack_cycle += 1
     _animate("attack")

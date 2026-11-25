@@ -32,6 +32,7 @@ var stride := 0.0
 func _ready() -> void:
     preload("res://scripts/enemy_contrast.gd").apply(art)
     home = global_position
+    AudioManager.foe_voice("cerbero", "cerbero")
     art.scale = Vector2.ONE * VISUAL_SCALE
     # El punto de apoyo coincide con las patas, no con el centro del fotograma.
     art.position = Vector2(0, -(FRAME_SIZE.y * 0.5 - 7.0) * VISUAL_SCALE)
@@ -42,11 +43,6 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
     if dead:
-        death_time += delta
-        if death_time > 0.8:
-            art.modulate.a = maxf(0.0, 1.0 - (death_time - 0.8) / 0.3)
-        if death_time >= 1.1:
-            queue_free()
         return
     if not active or not is_instance_valid(world) or not world.game_active or not is_instance_valid(hero):
         return
@@ -104,7 +100,7 @@ func _can_step(point: Vector2) -> bool:
     return point.distance_to(home) < 240.0 and point.y > 193.0 and point.y < 405.0 and world.can_walk(point, body_radius)
 
 func _release_attack() -> void:
-    AudioManager.cue("jefe")
+    AudioManager.foe_voice("cerbero")
     _play(_attack_key())
     preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_direction, 101.0, Color("eba452"))
     if dead or not is_instance_valid(hero) or not is_instance_valid(world):
@@ -145,6 +141,7 @@ func take_damage(amount: int, _direction: Vector2) -> void:
         AudioManager.cue("muerte")
         dead = true
         active = false
+        preload("res://scripts/boss_remains.gd").fall(self, art, "gula")
         collision_layer = 0
         collision_mask = 0
         _play("death")

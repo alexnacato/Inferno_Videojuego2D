@@ -3,7 +3,7 @@ extends Control
 
 func _ready() -> void:
     Game.use_campaign()
-    AudioManager.enter("")
+    AudioManager.enter("menu")
     _build()
 
 func _label(text_value: String, size_px: int, col: Color) -> Label:
@@ -14,7 +14,7 @@ func _label(text_value: String, size_px: int, col: Color) -> Label:
     return l
 
 func _button(text_value: String) -> Button:
-    var b: Button = Button.new()
+    var b: Button = preload("res://scripts/inferno_button.gd").new()
     b.text = text_value
     b.custom_minimum_size = Vector2(366, 54)
     b.add_theme_font_size_override("font_size", 17)
@@ -77,12 +77,16 @@ func _show_main(focus_index: int = -1) -> void:
     _line("LIMBO · LUJURIA · GULA · VIOLENCIA · TRAICIÓN", 15, Color("#34434b"))
     _subtitle("Cada elección cuenta en el descenso hasta el hielo de Cocito.")
     var buttons := [
-        _option("Nueva partida", _confirm_new),
-        _option("Continuar partida anterior", _resume),
+        _option("Comenzar un nuevo viaje", _confirm_new),
+        _option("Continuar partida anterior", _show_save),
         _option("Selección de niveles", _show_levels),
         _option("Configuración", _show_settings),
-        _option("Salir", func() -> void: get_tree().quit()),
+        _option("Créditos", _credits.bind(false)),
     ]
+    var gap := Control.new()
+    gap.custom_minimum_size.y = 12.0
+    content.add_child(gap)
+    _option("Salir", _credits.bind(true))
     buttons[1].disabled = not Game.has_save()
     if buttons[1].disabled:
         buttons[1].focus_mode = Control.FOCUS_NONE
@@ -129,7 +133,7 @@ func _show_settings() -> void:
     content.add_child(audio)
     audio.pressed.connect(func() -> void:
         Game.set_audio(not Game.audio_enabled, Game.audio_volume)
-        audio.text = "Audio · " + ("Activado" if Game.audio_enabled else "Silenciado"))
+        audio.text = "AUDIO · " + ("ACTIVADO" if Game.audio_enabled else "SILENCIADO"))
     var label := _label("Volumen  %d%%" % roundi(Game.audio_volume * 100), 18, Color("#26313a"))
     label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     content.add_child(label)
@@ -148,6 +152,39 @@ func _show_settings() -> void:
         Game.set_audio(Game.audio_enabled, value))
     _option("Volver", _show_main.bind(3))
     audio.grab_focus()
+
+func _credits(exit_after: bool) -> void:
+    panel.hide()
+    var reel = preload("res://scripts/credit_roll.gd").new()
+    reel.exit_after = exit_after
+    reel.finished.connect(func() -> void:
+        panel.show()
+        AudioManager.enter("menu")
+        _show_main(4))
+    add_child(reel)
+
+func _show_save() -> void:
+    Game.use_campaign()
+    _page("FICHA DEL PEREGRINO", 1)
+    var data := Game.progress
+    var circle: String = str(data.get("circle", "limbo"))
+    var names := {"limbo":"♜  I · LIMBO", "lujuria":"♧  II · LUJURIA", "gula":"◈  III · GULA", "violencia":"⚔  VII · VIOLENCIA", "traicion":"❄  IX · TRAICIÓN"}
+    var stats: Array = Game.chapter_summary(circle)
+    _line(str(names.get(circle, names["limbo"])), 23, Color("#795627"))
+    var health_frame := PanelContainer.new()
+    health_frame.theme_type_variation = &"CircleBadge"
+    content.add_child(health_frame)
+    var health_row := _label("♥".repeat(stats[3]) + "  ·  SALUD AL RETOMAR", 17, Color("#893b35"))
+    health_row.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    health_frame.add_child(health_row)
+    _line("✧  REDENCIÓN  %d" % data["redencion"], 17, Color("#46613f"))
+    _line("◆  RIGOR  %d" % data["rigor"], 17, Color("#833c3a"))
+    content.add_child(HSeparator.new())
+    _line(("%s  " % ("✓" if stats[0] == stats[1] else "□")) + "%s  %d / %d" % [stats[4], stats[0], stats[1]], 17, Color("#342c26"))
+    _line(("%s  " % ("✓" if stats[2] == 2 else "□")) + "ALMAS ESCUCHADAS  %d / 2" % stats[2], 17, Color("#342c26"))
+    _line(("✓" if stats[5] else "□") + "  UMBRAL LIBERADO", 17, Color("#342c26"))
+    _option("Continuar", _resume).grab_focus()
+    _option("Volver", _show_main.bind(1))
 
 func _new_game() -> void:
     Game.use_campaign()

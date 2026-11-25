@@ -13,7 +13,7 @@ func _run() -> void:
     await process_frame
     _check_scene("MenuPrincipal")
     var replacing_save: bool = game.has_save()
-    _press_button(current_scene, "Nueva partida")
+    _press_button(current_scene, "Comenzar un nuevo viaje")
     if replacing_save:
         _press_button(current_scene, "Iniciar nueva campaña")
     await process_frame
@@ -65,6 +65,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("Lujuria")
@@ -112,6 +113,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("Gula")
@@ -137,6 +139,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("FinGula")
@@ -148,7 +151,7 @@ func _press_button(screen: Node, caption: String) -> void:
         return
     for node in screen.find_children("*", "Button", true, false):
         var button: Button = node as Button
-        if button.text == caption:
+        if button.text.trim_prefix("‹  ") == caption.to_upper():
             button.pressed.emit()
             return
     failures.append("Falta el botón: " + caption)

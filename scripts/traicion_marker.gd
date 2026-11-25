@@ -16,16 +16,39 @@ func _ready() -> void:
     art = Sprite2D.new()
     art.texture = preload("res://scripts/sprite_library.gd").frame(
         "res://assets/violencia/almas_virgilio.png", 1 if kind == "guia" else 0, 0, 2, 1, Vector2i(80, 128))
+    var custom := load_soul(uid)
+    if kind == "alma" and custom != null:
+        art.texture = custom
     art.position.y = -69.0
     art.scale = Vector2.ONE * (1.19 if kind == "guia" else 1.06)
+    if kind == "alma" and custom != null:
+        art.scale = Vector2.ONE * (138.0 / art.texture.get_height())
     art.self_modulate = Color("#e9d9ba") if kind == "guia" else Color("#cce8ff")
     add_child(art)
     preload("res://scripts/interaction_visual.gd").spirit(art, kind == "guia")
 
+static func load_soul(id: String) -> Texture2D:
+    if id == "alma_ugolino":
+        return preload("res://assets/traicion/npcs/judas.png")
+    if id == "alma_bocca":
+        return preload("res://assets/traicion/npcs/hitler.png")
+    return null
+
+static func portrait_for(id: String) -> Texture2D:
+    var source := load_soul(id)
+    if source == null:
+        return preload("res://assets/ui/retrato_alma.png")
+    var portrait := AtlasTexture.new()
+    portrait.atlas = source
+    var size := source.get_size()
+    var side := minf(size.x, size.y * 0.34)
+    portrait.region = Rect2((size.x - side) * 0.5, 0.0, side, side)
+    return portrait
+
 func _process(delta: float) -> void:
     phase += delta
     if is_instance_valid(art):
-        art.position.y = -69.0 + sin(phase * 1.5) * 5.0
+        art.position.y = -76.0 if kind == "guia" else -69.0 + sin(phase * 1.5) * 5.0
         art.modulate.a = 0.68 if completed else 1.0
     queue_redraw()
 
@@ -34,6 +57,10 @@ func set_done(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if near:
+        preload("res://scripts/interaction_visual.gd").interaction_pin(self)
+    if kind == "guia":
+        preload("res://scripts/interaction_visual.gd").shadow(self)
     if completed and kind in ["sello", "alma"]:
         preload("res://scripts/interaction_visual.gd").seen(self)
     if kind == "puerta":

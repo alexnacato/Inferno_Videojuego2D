@@ -67,6 +67,7 @@ func _ready() -> void:
 	last_seen = anchor
 	patrol_target = anchor
 	var shape := CircleShape2D.new()
+	AudioManager.foe_voice(archetype, spawn_id)
 	body_radius = float(STATS[archetype]["radius"]) + (4.0 if archetype == "minos" else 3.0)
 	shape.radius = body_radius
 	$CollisionShape2D.shape = shape
@@ -94,7 +95,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if dead:
 		fade_time += delta
-		if fade_time > 0.75:
+		if fade_time > 0.75 and archetype != "minos":
 			queue_free()
 		return
 	if not active or not is_instance_valid(hero) or not is_instance_valid(world) or not world.game_active:
@@ -231,7 +232,7 @@ func can_enter_boss(point: Vector2) -> bool:
 	return world.can_occupy_enemy(point, self, body_radius)
 
 func _release_attack() -> void:
-	AudioManager.cue("jefe" if archetype == "minos" else "enemigo")
+	AudioManager.foe_voice(archetype)
 	preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_target, 70.0, Color("e6a0ff"))
 	if dead or not is_instance_valid(world):
 		return
@@ -279,6 +280,8 @@ func take_damage(amount: int, from_direction: Vector2 = Vector2.DOWN) -> void:
 	if hp <= 0:
 		AudioManager.cue("muerte")
 		dead = true
+		if archetype == "minos":
+			preload("res://scripts/boss_remains.gd").fall(self, art, "lujuria")
 		collision_layer = 0
 		collision_mask = 0
 		_play("death")

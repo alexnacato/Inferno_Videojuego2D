@@ -20,9 +20,13 @@
 
 **Prioridad 10: Traición después de Violencia.** En **Violencia completada**, pulsa **Continuar a Traición**. Comprueba que aparece Cocito, que Redención y Rigor no se reinician y que la esquiva mejorada conserva duración, protección y recarga tras cerrar y continuar la partida.
 
-**Prioridad 11.** En Traición, activa F3 para comparar las colisiones con el mapa. Rodea los monumentos y las columnas. Combate contra el custodio, el sabueso y el espectro, rompe ambos juramentos y toma las decisiones de Ugolino y Bocca. Lee la inscripción y enciende el brasero. Comprueba el hielo fino, las dos fases de Lucifer y la ventana de daño marcada por su anillo dorado. Deja que Dante caiga y verifica que vuelve al último punto de descanso sin proyectiles pendientes. Guarda y continúa para comprobar que los guardianes vencidos no reaparecen. Vence a Lucifer, usa la salida y verifica que **Continuar** conserva la pantalla final.
+**Prioridad 11.** En Traición, activa F3 para comparar las colisiones con el mapa. Rodea los monumentos y las columnas. Combate contra el custodio, el sabueso y el espectro, rompe ambos juramentos y toma las decisiones de Judas Iscariote y Hitler. Lee la inscripción y enciende el brasero. Comprueba el hielo fino, las dos fases de Lucifer y la ventana de daño marcada por su anillo dorado. Deja que Dante caiga y verifica que vuelve al último punto de descanso sin proyectiles pendientes. Guarda y continúa para comprobar que los guardianes vencidos no reaparecen. Vence a Lucifer, usa la salida y verifica que **Continuar** conserva la pantalla final.
 
 ### Verificación automatizada
+
+`godot --headless --path . --script res://tests/second_round_smoke.gd`
+
+Esta prueba comprueba la colisión con los NPC, la recolección y persistencia de las cinco reliquias y los umbrales de ambos desenlaces. Usa un `APPDATA` temporal.
 
 `godot --headless --path . --script res://tests/menu_flow_smoke.gd`
 

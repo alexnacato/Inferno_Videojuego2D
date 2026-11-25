@@ -20,7 +20,9 @@ Los cinco escenarios comparten interfaz, decisiones morales y un archivo de guar
 6. En **Lujuria completada**, pulsa **Continuar a Gula**.
 7. En **Gula**, atraviesa el lodo, hunde las dos ofrendas, escucha a Daria y Olmo, derrota a Cerbero y abre la puerta norte.
 8. En **Gula completada**, pulsa **Continuar a Violencia**. Cruza el Flegetonte, enciende Contención → Memoria → Tregua, escucha al guardia y al testigo y derrota al Minotauro.
-9. En **Violencia completada**, pulsa **Continuar a Traición**. Derrota a los cinco guardianes de Cocito, rompe los dos juramentos y escucha a Ugolino y Bocca. Enciende el brasero central para guardar el punto de regreso. Dante recupera la salud al despertar Lucifer. Esquiva sus ataques y contraataca cuando el anillo dorado señale su recuperación. Después de vencerlo, cruza la salida.
+9. En **Violencia completada**, pulsa **Continuar a Traición**. Derrota a los cinco guardianes de Cocito, rompe los dos juramentos y escucha a Judas Iscariote y enfrenta la memoria de las víctimas ante Hitler. Enciende el brasero central para guardar el punto de regreso. Dante recupera la salud al despertar Lucifer. Esquiva sus ataques y contraataca cuando el anillo dorado señale su recuperación. Después de vencerlo, cruza la salida.
+
+Las reliquias brillan en rutas opcionales y se recogen al acercarte. En combate, mantener K hace crecer la ráfaga hasta cuatro pulsos. Tras cruzar el último umbral, el desenlace de Beatriz se guarda con la campaña y se muestra antes de los créditos.
 
 ### Controles
 

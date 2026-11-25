@@ -104,7 +104,7 @@ func _process(delta: float) -> void:
         _show_hint()
     if _on_thin_ice(hero.global_position) and hero.dash_time <= 0.0:
         frost_time += delta
-        if frost_time >= 2.2:
+        if frost_time >= (3.8 if Game.has_relic("traicion") else 2.2):
             frost_time = 0.0
             ice_break_point = hero.global_position
             ice_break_time = 1.1
@@ -250,7 +250,7 @@ func _spawn_enemies(origin: Vector2) -> void:
         if id in defeated_enemies or encountered.has(id) or origin.distance_to(ENCOUNTERS[id][1]) > 205.0:
             continue
         encountered[id] = true
-        AudioManager.cue("aparicion")
+
         var enemy = FOE_SCENE.instantiate()
         enemy.set_script(ICE_FOE)
         enemy.spawn_id = id
@@ -313,7 +313,7 @@ func _nearest_marker() -> Variant:
     var best_distance := 88.0
     for marker in markers.get_children():
         var distance: float = hero.global_position.distance_to(marker.global_position)
-        if distance < best_distance and _interaction_clear(marker):
+        if distance < best_distance and (marker.kind not in ["alma", "guia"] or distance <= 59.0) and _interaction_clear(marker):
             best = marker
             best_distance = distance
     return best
@@ -360,6 +360,7 @@ func _break_seal(marker: Variant) -> void:
         _toast("Este juramento ya está roto.")
         return
     seals.append(uid)
+    hero.heal(1)
     marker.set_done(true)
     _save_state()
     _refresh_hud()
@@ -372,13 +373,14 @@ func _talk_soul(uid: String) -> void:
     if decided.has(uid):
         _dialogue("short", "ECO EN EL HIELO", "Tu respuesta permanece conmigo.", ["Continuar"])
     elif uid == "alma_ugolino":
-        _dialogue(uid, "UGOLINO · ALMA DE LA TRAICIÓN",
-            "Fui prisionero de una alianza rota. El hambre me arrebató hasta el nombre. ¿Me recordarás como hombre, pese a mis faltas?",
-            ["Reconocer su dolor", "Recordar también sus culpas"])
+        # Los identificadores históricos del guardado se conservan para no duplicar decisiones.
+        _dialogue(uid, "JUDAS ISCARIOTE · ALMA DE LA TRAICIÓN",
+            "La bolsa aún pesa lo mismo. Entregué a quien confiaba en mí y después quise huir de lo que había hecho. La plata no borra el daño.",
+            ["Escuchar tu arrepentimiento sin borrar la traición", "Dejar que el peso de tus actos hable por ti"])
     else:
-        _dialogue(uid, "BOCCA · ALMA DE LA TRAICIÓN",
-            "Entregué a quienes confiaron en mí para salvarme. Sus voces quedaron bajo este hielo. ¿Puedo confesar la verdad ahora?",
-            ["Escuchar su confesión", "Exigirle que asuma el daño"])
+        _dialogue(uid, "HITLER · ALMA DE LA TRAICIÓN",
+            "Dante contempla al responsable de un régimen que persiguió y asesinó a millones. Aquí no hay estandartes ni discursos, solo la memoria de las víctimas y el peso de sus crímenes.",
+            ["Guardar silencio por las víctimas y preservar sus nombres", "Condenar sus crímenes sin concederle otra palabra"])
 
 func _dialogue(context: String, title: String, message: String, options: Array) -> void:
     dialogue_context = context
@@ -416,7 +418,7 @@ func _show_hint() -> void:
     if seals.size() < 2:
         _toast("VIRGILIO: Los juramentos están en los dos patios laterales.", 5.0)
     elif decided.size() < 2:
-        _toast("VIRGILIO: Escucha a Ugolino y a Bocca antes de avanzar.", 5.0)
+        _toast("VIRGILIO: Escucha a Judas Iscariote y a Hitler antes de avanzar.", 5.0)
     elif defeated_enemies.size() < ENCOUNTERS.size() and not boss_spawned:
         _toast("VIRGILIO: Quedan %d guardianes del hielo." % (ENCOUNTERS.size() - defeated_enemies.size()), 5.0)
     elif not boss_defeated:
@@ -508,6 +510,7 @@ func _on_health_changed(current: int, maximum: int) -> void:
     hud.set_health(current, maximum)
 
 func _on_exhausted() -> void:
+    var cause := "El hielo cedió bajo tus pies. Levántate, Dante, y sigue la piedra firme." if ice_break_time > 0.0 else "Lucifer te ha derribado, Dante. Deja pasar la ventisca y ataca cuando recobre el aliento." if is_instance_valid(boss) and not boss.dead else "Los guardianes de Cocito te han hecho caer, Dante. Escucha sus pasos y busca espacio para esquivar."
     game_active = false
     for shot in bullets.get_children():
         shot.queue_free()
@@ -516,7 +519,7 @@ func _on_exhausted() -> void:
     await get_tree().create_timer(1.1).timeout
     if not is_inside_tree():
         return
-    _dialogue("death", "VIRGILIO · LEVÁNTATE", "Dante regresará al inicio del tramo con su progreso guardado.", ["Volver al inicio"])
+    _dialogue("death", "VIRGILIO", cause + " Volverás al punto de descanso con tu progreso guardado.", ["Volver al inicio"])
 
 func _complete_level() -> void:
     game_active = false

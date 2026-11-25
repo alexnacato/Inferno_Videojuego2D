@@ -26,7 +26,7 @@ func _process(delta: float) -> void:
     if completed and kind == "ofrenda":
         sink = minf(sink + delta * 1.2, 1.0)
     if kind in ["alma", "guia"] and art != null:
-        art.position.y = base_art_y + sin(elapsed * 1.5) * 5.0
+        art.position.y = base_art_y + (sin(elapsed * 1.5) * 5.0 if kind == "alma" else 0.0)
         art.modulate = Color(0.84, 1.0, 1.08, 0.63 if completed else 0.91) if kind == "alma" else Color.WHITE
     queue_redraw()
 
@@ -36,6 +36,10 @@ func set_done(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if near:
+        preload("res://scripts/interaction_visual.gd").interaction_pin(self)
+    if kind == "guia":
+        VISUAL.shadow(self)
     if completed and kind != "puerta":
         VISUAL.seen(self)
     if kind == "alma":

@@ -57,6 +57,7 @@ func _ready() -> void:
     var data: Dictionary = DATA[archetype]
     max_hp = int(data["hp"])
     hp = max_hp
+    AudioManager.foe_voice(archetype, spawn_id)
     body_radius = float(data["radius"]) + (3.0 if is_instance_valid(world) and str(world.name) == "Gula" else 2.0)
     anchor = global_position
     patrol_target = anchor
@@ -218,7 +219,7 @@ func _steer(destination: Vector2) -> Vector2:
     return global_position.direction_to(route[0]) if not route.is_empty() else Vector2.ZERO
 
 func _release_attack() -> void:
-    AudioManager.cue("enemigo")
+    AudioManager.foe_voice(archetype)
     var accent := Color("#b2e9ff") if is_instance_valid(world) and str(world.name) == "Traicion" else Color("#d4ef89")
     preload("res://scripts/combat_fx.gd").burst(self, global_position, attack_direction, 73.0, accent)
     if dead or not is_instance_valid(hero) or not is_instance_valid(world):

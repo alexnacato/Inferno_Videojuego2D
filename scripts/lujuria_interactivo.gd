@@ -38,7 +38,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
     elapsed += delta
-    art.position.y = base_art_y + sin(elapsed * 2.2) * (2.0 if kind in ["sello", "puerta"] else 6.0)
+    art.position.y = base_art_y + sin(elapsed * 2.2) * (0.0 if kind == "virgilio" else 2.0 if kind in ["sello", "puerta"] else 4.0)
     queue_redraw()
 
 func set_done(value: bool) -> void:
@@ -50,6 +50,8 @@ func set_done(value: bool) -> void:
     queue_redraw()
 
 func _draw() -> void:
+    if near:
+        preload("res://scripts/interaction_visual.gd").interaction_pin(self)
     if completed and kind != "puerta":
         VISUAL.seen(self)
     if kind == "paolo" or kind == "francesca" or kind == "virgilio":

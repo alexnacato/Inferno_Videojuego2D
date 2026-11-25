@@ -10,6 +10,7 @@
   "checkpoint": false,
   "circle": "gula",
   "dash_extended": false,
+  "ending": "",
   "gula_boss_defeated": true,
   "gula_boss_spawned": true,
   "gula_checkpoint_x": 724.0,
@@ -29,6 +30,7 @@
   "gula_triggered_waves": {},
   "intro_seen": false,
   "limbo_completed": false,
+  "limbo_transition_pending": false,
   "lujuria_boss_defeated": false,
   "lujuria_boss_spawned": false,
   "lujuria_checkpoint_x": 723.0,
@@ -44,7 +46,17 @@
   "pos_y": 843.0,
   "puzzle_errors": 0,
   "redencion": 2,
+  "relics": {},
+  "remains": {
+    "gula": [
+      724.0,
+      310.0
+    ]
+  },
   "rigor": 0,
+  "seen_foes": {
+    "gula/cerbero": true
+  },
   "shrine_step": 0,
   "traicion_boss_defeated": false,
   "traicion_boss_spawned": false,
@@ -52,6 +64,7 @@
   "traicion_checkpoint_y": 1000.0,
   "traicion_completed": false,
   "traicion_decisions": {},
+  "traicion_defeated_enemies": [],
   "traicion_intro_seen": false,
   "traicion_seals": [],
   "traicion_started": false,

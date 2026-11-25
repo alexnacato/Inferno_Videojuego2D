@@ -22,6 +22,10 @@ var dash_recharge := 0.0
 var strike_recharge := 0.0
 var step_travel := 0.0
 var verse_left := 0
+var verse_chain := 0
+var verse_window := 0.0
+var base_health := 6
+var base_dash_cooldown := 0.85
 var verse_tick := 0.0
 var verse_aim := Vector2.DOWN
 var hurt_pose := 0.0
@@ -40,7 +44,10 @@ func _ready() -> void:
         dash_duration = 0.25
         dash_invulnerability = 0.42
         dash_cooldown_duration = 0.65
+    base_health = max_health
+    base_dash_cooldown = dash_cooldown_duration
     health = max_health
+    apply_relics()
     art.play("idle_down")
     health_changed.emit(health, max_health)
 
@@ -49,6 +56,9 @@ func _physics_process(delta: float) -> void:
     dash_recharge = maxf(0.0, dash_recharge - delta)
     strike_recharge = maxf(0.0, strike_recharge - delta)
     verse_recharge = maxf(0.0, verse_recharge - delta)
+    verse_window = maxf(0.0, verse_window - delta)
+    if verse_window == 0.0:
+        verse_chain = 0
     invulnerable = maxf(0.0, invulnerable - delta)
     pose_time = maxf(0.0, pose_time - delta)
     hurt_pose = maxf(0.0, hurt_pose - delta)
@@ -82,16 +92,18 @@ func _physics_process(delta: float) -> void:
             world.melee_hit(global_position, facing)
             var accent := Color(str(Game.CIRCLE_TINTS.get(AudioManager.chapter, "#baffed"))).lerp(Color.WHITE, 0.48)
             preload("res://scripts/combat_fx.gd").burst(self, global_position, facing, 67.0, accent)
-    if Input.is_action_just_pressed("verse") and verse_recharge <= 0.0:
+    if Input.is_action_pressed("verse") and verse_recharge <= 0.0:
         verse_recharge = 0.44
-        verse_left = 3
+        verse_chain = mini(4, verse_chain + 1)
+        verse_window = 1.1
+        verse_left = verse_chain
         verse_tick = 0.0
         verse_aim = facing
         pose_time = 0.22
         combat_action.emit("verso")
     verse_tick -= delta
     if verse_left > 0 and verse_tick <= 0.0 and is_instance_valid(world):
-        world.spawn_projectile(global_position, verse_aim.rotated(0.09 * (2 - verse_left)), false, 2 if verse_left == 3 else 1)
+        world.spawn_projectile(global_position, verse_aim.rotated(0.09 * (float(verse_chain + 1) * 0.5 - verse_left)), false, (3 if Game.has_relic("lujuria") else 2) if verse_chain == 4 and verse_left == 1 else 1)
         AudioManager.cue("verso")
         verse_left -= 1
         verse_tick = 0.065
@@ -147,12 +159,24 @@ func take_damage(damage: int, force: bool = false) -> void:
 func restore(new_health: int, checkpoint: Vector2) -> void:
     health = clampi(new_health, 1, max_health)
     fall_pose = 0.0
+    verse_chain = 0
+    verse_window = 0.0
+    verse_left = 0
     art.rotation = 0.0
     art.modulate = Color.WHITE
     global_position = checkpoint
     last_safe_position = checkpoint
     invulnerable = 1.25
     dash_time = 0.0
+    health_changed.emit(health, max_health)
+
+func apply_relics() -> void:
+    var bonus := 1 if Game.has_relic("gula") else 0
+    if base_health + bonus > max_health:
+        health += bonus
+    max_health = base_health + bonus
+    var cooldown := minf(base_dash_cooldown, 0.65) if Game.progress.get("dash_extended", false) else base_dash_cooldown
+    dash_cooldown_duration = cooldown * (0.90 if Game.has_relic("limbo") else 1.0) * (0.85 if Game.has_relic("violencia") else 1.0)
     health_changed.emit(health, max_health)
 
 func heal(amount: int) -> void:

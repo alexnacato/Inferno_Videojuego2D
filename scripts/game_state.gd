@@ -86,7 +86,7 @@ func default_progress() -> Dictionary:
         "traicion_seals": [], "traicion_decisions": {}, "traicion_defeated_enemies": [],
         "traicion_boss_spawned": false, "traicion_boss_defeated": false,
         "traicion_checkpoint_x": 724.0, "traicion_checkpoint_y": 1000.0,
-        "traicion_completed": false
+        "traicion_completed": false, "ending": "", "relics": {}, "seen_foes": {}, "remains": {}
     }
 
 func has_save() -> bool:
@@ -150,6 +150,49 @@ func decide(id: String, compassionate: bool) -> void:
         progress["rigor"] = int(progress["rigor"]) + 1
         progress[id] = "rigor"
     save_progress()
+
+func chapter_summary(circle: String) -> Array:
+    var health := 7 if has_relic("gula") else 6
+    match circle:
+        "lujuria":
+            return [progress["lujuria_seals"].size(), 3, progress["lujuria_decisions"].size(), health, "SELLOS", progress["lujuria_boss_defeated"]]
+        "gula":
+            return [progress["gula_offerings"].size(), 2, progress["gula_decisions"].size(), health, "OFRENDAS", progress["gula_boss_defeated"]]
+        "violencia":
+            var chapter: Dictionary = progress["violencia"]
+            return [chapter.get("seals", []).size(), 3, chapter.get("decisions", {}).size(), health, "VOTOS", chapter.get("boss_down", false)]
+        "traicion":
+            return [progress["traicion_seals"].size(), 2, progress["traicion_decisions"].size(), health, "JURAMENTOS", progress["traicion_boss_defeated"]]
+        _:
+            return [progress["shrine_step"], 3, souls_completed(), 3, "SANTUARIOS", gate_unlocked()]
+
+func has_relic(chapter: String) -> bool:
+    return bool(progress.get("relics", {}).get(chapter, false))
+
+func decisions_summary(circle: String) -> String:
+    var names := {
+        "limbo": [["alma_elio","Elio"],["alma_livia","Livia"]],
+        "lujuria": [["alma_paolo","Paolo"],["alma_francesca","Francesca"]],
+        "gula": [["alma_daria","Daria"],["alma_olmo","Olmo"]],
+        "violencia": [["guardia","Guardia"],["testigo","Testigo"]],
+        "traicion": [["alma_ugolino","Judas Iscariote"],["alma_bocca","Hitler"]],
+    }
+    var lines := PackedStringArray()
+    for soul in names[circle]:
+        var choice: Variant = progress.get(soul[0], "")
+        if circle == "violencia":
+            choice = progress["violencia"].get("decisions", {}).get(soul[0], "")
+        var result := "Redención" if str(choice) == "redencion" or choice is float and int(choice) == 0 or choice is int and choice == 0 else "Rigor" if str(choice) != "" else "Sin decisión"
+        lines.append("%s: %s" % [soul[1], result])
+    return "  /  ".join(lines)
+
+func record_ending() -> String:
+    # Beatriz se salva con al menos 6 puntos de Redención y una ventaja de 2 sobre Rigor.
+    if str(progress["ending"]).is_empty():
+        progress["ending"] = "luz" if int(progress["redencion"]) >= 6 and int(progress["redencion"]) - int(progress["rigor"]) >= 2 else "ceniza"
+        if progress["traicion_completed"]:
+            save_progress()
+    return progress["ending"]
 
 func next_scene() -> String:
     if bool(progress.get("limbo_transition_pending", false)):

@@ -92,14 +92,14 @@ func _physics_process(delta: float) -> void:
                 lake_jump_to = landing
                 lake_jump_elapsed = 0.0001
                 dash_started.emit()
-                dash_cooldown_left = dash_cooldown
+                dash_cooldown_left = dash_cooldown * (0.90 if Game.has_relic("limbo") else 1.0)
                 face = _direction(last_motion)
                 $Shadow.visible = false
                 _play("dash", true)
                 return
         dash_time_left = dash_duration
         dash_started.emit()
-        dash_cooldown_left = dash_cooldown
+        dash_cooldown_left = dash_cooldown * (0.90 if Game.has_relic("limbo") else 1.0)
         face = _direction(last_motion)
 
     if dash_time_left > 0.0:

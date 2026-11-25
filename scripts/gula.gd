@@ -122,6 +122,9 @@ func _draw() -> void:
         draw_colored_polygon(area.transform * polygon, Color(0.27, 0.35, 0.10, 0.20))
 
 func can_walk(p: Vector2, radius: float = 10.0) -> bool:
+    var guide := markers.get_node("Virgilio") as Node2D
+    if preload("res://scripts/interaction_visual.gd").footprint(p, guide, radius):
+        return false
     for offset in SAMPLES:
         var sample: Vector2 = p + offset * radius
         var found := false
@@ -233,7 +236,7 @@ func _nearest_marker() -> Variant:
     for marker in markers.get_children():
         var marker_node: Node2D = marker as Node2D
         var distance: float = hero.global_position.distance_to(marker_node.global_position)
-        if distance < best_distance:
+        if distance < best_distance and (marker.kind not in ["alma", "guia"] or distance <= 65.0):
             best = marker
             best_distance = distance
     return best
@@ -258,6 +261,7 @@ func _sink_offering(marker: Variant) -> void:
         _toast("La ofrenda ya se hundió en el lodo.")
         return
     offerings.append(uid)
+    hero.heal(1)
     marker.set_done(true)
     _save_state()
     _refresh_hud()
@@ -461,7 +465,7 @@ func _on_exhausted() -> void:
     await get_tree().create_timer(1.1).timeout
     if not is_inside_tree():
         return
-    _dialogue("death", "VIRGILIO · LEVÁNTATE", "Dante regresará al inicio del círculo con su progreso guardado.", ["Volver al inicio"])
+    _dialogue("death", "VIRGILIO", ("Cerbero te ha derribado. Recobra el aliento, Dante. Al oír su aullido, gana distancia." if is_instance_valid(boss) and not boss.dead else "El lodo y sus guardianes te han abatido, Dante. Busca la piedra firme antes de volver a atacar.") + " Volverás a la entrada con tus ofrendas y decisiones guardadas.", ["Volver al inicio"])
 
 func _complete_level() -> void:
     game_active = false

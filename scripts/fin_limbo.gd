@@ -34,7 +34,7 @@ func _ready() -> void:
     stack.add_child(outro)
     var foot: Label = _label("PRÓXIMAMENTE: CÍRCULO II — LUJURIA", 16)
     stack.add_child(foot)
-    var back: Button = Button.new()
+    var back: Button = preload("res://scripts/inferno_button.gd").new()
     back.text = "VOLVER AL MENÚ PRINCIPAL"
     back.custom_minimum_size = Vector2(320, 49)
     back.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))

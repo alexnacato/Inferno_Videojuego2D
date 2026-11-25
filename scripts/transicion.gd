@@ -32,14 +32,14 @@ func _ready() -> void:
     box.add_child(copy)
     box.add_child(_label("CÍRCULO II  ·  LUJURIA", 27))
     box.add_child(_label("Redención: %d   ·   Rigor: %d" % [int(Game.progress["redencion"]), int(Game.progress["rigor"])], 21))
-    var continue_button: Button = Button.new()
+    var continue_button: Button = preload("res://scripts/inferno_button.gd").new()
     continue_button.text = "CONTINUAR A LUJURIA"
     continue_button.custom_minimum_size = Vector2(335, 55)
     continue_button.pressed.connect(func() -> void:
         Game.enter_lujuria()
         Game.cross_threshold("res://scenes/Lujuria.tscn"))
     box.add_child(continue_button)
-    var menu := Button.new()
+    var menu := preload("res://scripts/inferno_button.gd").new()
     menu.text = "VOLVER AL MENÚ PRINCIPAL"
     menu.custom_minimum_size.y = 50.0
     menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))

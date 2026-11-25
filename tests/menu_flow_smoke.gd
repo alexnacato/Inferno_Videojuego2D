@@ -16,7 +16,7 @@ func _run() -> void:
     change_scene_to_file(MENU)
     await _settle()
     _check(_button("Continuar partida anterior").disabled, "Continuar se habilita antes de guardar")
-    _check(_focused("Nueva partida"), "El menú no tiene foco inicial")
+    _check(_focused("Comenzar un nuevo viaje"), "El menú no tiene foco inicial")
     _check_centered_screen("MenuPrincipal")
     await _capture("01-menu")
     await _key(KEY_DOWN)
@@ -36,15 +36,17 @@ func _run() -> void:
     if not _focused("Configuración"):
         _finish()
         return
-    await _click("Nueva partida")
+    await _click("Comenzar un nuevo viaje")
     _check(current_scene.name == "Limbo", "Nueva partida no abre Limbo")
     if current_scene.name != "Limbo":
         _finish()
         return
     var limbo: Node = current_scene
-    await _capture("03-dialogo")
     await _key(KEY_SPACE)
     _check(limbo.hud.dialogue_open, "Espacio activa el diálogo y puede disparar una esquiva")
+    await _key(KEY_ENTER)
+    _check(limbo.hud.dialogue_open and not limbo.hud.dialogue_text.writing, "Enter no revela el diálogo")
+    await _capture("03-dialogo")
     await _key(KEY_ENTER)
     _check(not limbo.hud.dialogue_open, "Enter no acepta el diálogo enfocado")
     _check(not limbo.hud.player_details.visible, "El HUD de Dante inicia desplegado")
@@ -75,10 +77,10 @@ func _run() -> void:
         _finish()
         return
     _check(_focused("Continuar partida anterior"), "Continuar no recibe foco al volver")
-    await _click("Nueva partida")
+    await _click("Comenzar un nuevo viaje")
     _check(_focused("Volver"), "La confirmación de nueva campaña no enfoca la salida segura")
     await _key(KEY_ESCAPE)
-    _check(_focused("Nueva partida") and game.has_save(), "Cancelar nueva campaña no conserva el progreso")
+    _check(_focused("Comenzar un nuevo viaje") and game.has_save(), "Cancelar nueva campaña no conserva el progreso")
     if current_scene.name != "MenuPrincipal":
         _finish()
         return
@@ -96,21 +98,31 @@ func _run() -> void:
         await _settle()
     _check(FileAccess.get_file_as_string(game.SAVE_PATH) == campaign, "El modo libre modificó la campaña")
     await _key(KEY_ENTER)
+    _check(_focused("Continuar"), "No se abrió la ficha del peregrino")
+    await _capture("06-ficha")
+    await _key(KEY_ENTER)
     _check(current_scene.name == "Limbo", "Continuar no restaura Limbo después del modo libre")
 
     for screen in ["Transicion", "FinLimbo", "FinLujuria", "FinGula", "FinViolencia", "FinTraicion"]:
         change_scene_to_file("res://scenes/%s.tscn" % screen)
         await _settle()
-        _check_centered_screen(screen)
+        if screen != "FinTraicion":
+            _check_centered_screen(screen)
         if screen == "Transicion":
             for frame in range(58):
                 await process_frame
         await _capture(screen)
-        await _click("VOLVER AL MENÚ PRINCIPAL")
+        if screen == "FinTraicion":
+            await _key(KEY_ENTER)
+            await _key(KEY_ENTER)
+            await _key(KEY_ENTER)
+            await _key(KEY_ESCAPE)
+        else:
+            await _click("VOLVER AL MENÚ PRINCIPAL")
         _check(current_scene.name == "MenuPrincipal", "Volver al menú falla en " + screen)
     game.progress["redencion"] = 4
     game.save_progress()
-    await _click("Nueva partida")
+    await _click("Comenzar un nuevo viaje")
     await _click("Iniciar nueva campaña")
     _check(current_scene.name == "Limbo" and game.progress["redencion"] == 0, "Confirmar no reinicia la campaña")
     change_scene_to_file(MENU)
@@ -130,14 +142,14 @@ func _check_centered_screen(screen: String) -> void:
 
 func _button(caption: String) -> Button:
     for node in current_scene.find_children("*", "Button", true, false):
-        if node.text == caption and node.is_visible_in_tree():
+        if node.text.trim_prefix("‹  ") == caption.to_upper() and node.is_visible_in_tree():
             return node
     push_error("Botón no encontrado: " + caption)
     return null
 
 func _focused(caption: String) -> bool:
     var focus := root.gui_get_focus_owner() as Button
-    return is_instance_valid(focus) and focus.text == caption
+    return is_instance_valid(focus) and focus.text.trim_prefix("‹  ") == caption.to_upper()
 
 func _key(code: Key) -> void:
     var event := InputEventKey.new()
@@ -192,6 +204,24 @@ func _finish() -> void:
         quit(1)
         return
     print("Menú, entradas, guardado, cinco accesos libres y seis cierres verificados.")
+    await _click("Créditos")
+    var roll := current_scene.get_child(current_scene.get_child_count() - 1)
+    var credits := []
+    for entry in roll.find_children("*", "Label", true, false):
+        credits.append(entry.text)
+    for name in ["Alexander Ñacato", "Leidy Saraguro", "Gabriel Baez"]:
+        if name not in credits:
+            push_error("Falta en créditos: " + name)
+            quit(1)
+            return
+    await _capture("07-creditos")
+    await _key(KEY_ESCAPE)
     await _click("Salir")
-    push_error("Salir no cerró la aplicación")
-    quit(1)
+    var exit_roll := current_scene.get_child(current_scene.get_child_count() - 1)
+    var exit_key := InputEventKey.new()
+    exit_key.keycode = KEY_ESCAPE
+    exit_key.pressed = true
+    root.push_input(exit_key)
+    if not exit_roll.closing:
+        push_error("Salir no cerró la aplicación")
+        quit(1)

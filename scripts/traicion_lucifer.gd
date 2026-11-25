@@ -34,15 +34,11 @@ func _ready() -> void:
     art.position = Vector2(0, -104)
     art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
     home = global_position
+    AudioManager.foe_voice("lucifer", "lucifer")
     hp_changed.emit(hp, max_hp)
 
 func _physics_process(delta: float) -> void:
     if dead:
-        defeat_time += delta
-        art.rotation = defeat_time * 0.25
-        art.modulate.a = maxf(0.0, 1.0 - defeat_time / 0.8)
-        if defeat_time >= 0.8:
-            queue_free()
         return
     if dead or not active or not is_instance_valid(world) or not world.game_active or not is_instance_valid(hero):
         return
@@ -86,7 +82,7 @@ func _can_move(point: Vector2) -> bool:
     return point.distance_to(home) <= 145.0 and point.distance_to(hero.global_position) >= body_radius + 10.0 and world.can_walk(point, body_radius)
 
 func _release_attack() -> void:
-    AudioManager.cue("jefe")
+    AudioManager.foe_voice("lucifer")
     if not is_instance_valid(hero) or not is_instance_valid(world):
         return
     var distance: float = global_position.distance_to(hero.global_position)
@@ -120,6 +116,7 @@ func take_damage(amount: int, _direction: Vector2) -> void:
     if hp == 0:
         dead = true
         active = false
+        preload("res://scripts/boss_remains.gd").fall(self, art, "traicion")
         AudioManager.cue("muerte")
         defeated.emit()
 

@@ -112,19 +112,19 @@ uid = "sello_este"
 kind = "sello"
 caption = "ROMPER EL JURAMENTO DEL ESTE"
 
-[node name="AlmaUgolino" type="Node2D" parent="Marcadores"]
+[node name="AlmaJudas" type="Node2D" parent="Marcadores"]
 position = Vector2(180, 619)
 script = ExtResource("6_marker")
 uid = "alma_ugolino"
 kind = "alma"
-caption = "ESCUCHAR A UGOLINO"
+caption = "ESCUCHAR A JUDAS ISCARIOTE"
 
-[node name="AlmaBocca" type="Node2D" parent="Marcadores"]
+[node name="AlmaHitler" type="Node2D" parent="Marcadores"]
 position = Vector2(1268, 619)
 script = ExtResource("6_marker")
 uid = "alma_bocca"
 kind = "alma"
-caption = "ESCUCHAR A BOCCA"
+caption = "ANTE HITLER · RECORDAR A LAS VÍCTIMAS"
 
 [node name="Inscripcion" type="Node2D" parent="Marcadores"]
 position = Vector2(667, 831)

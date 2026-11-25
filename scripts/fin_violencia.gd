@@ -30,14 +30,14 @@ func _ready() -> void:
     _label(stack,"Redención: %d     ·     Rigor: %d" % [red,rig],19,Color("453c3d"))
     _label(stack,"ESQUIVA EXTENDIDA OBTENIDA\nMás distancia · mayor protección · menor recarga",19,Color("51473d"))
     _label(stack,"El hielo de Cocito espera en Traición, el último círculo disponible.",17,Color("74645f"))
-    var next := Button.new()
+    var next := preload("res://scripts/inferno_button.gd").new()
     next.text = "CONTINUAR A TRAICIÓN · CÍRCULO IX"
     next.custom_minimum_size = Vector2(0,48)
     stack.add_child(next)
     next.pressed.connect(func() -> void:
         Game.enter_traicion()
         Game.cross_threshold("res://scenes/Traicion.tscn"))
-    var button := Button.new()
+    var button := preload("res://scripts/inferno_button.gd").new()
     button.text = "VOLVER AL MENÚ PRINCIPAL"
     button.custom_minimum_size = Vector2(0,48)
     stack.add_child(button)

@@ -12,7 +12,7 @@ func _run() -> void:
     await process_frame
     _check_scene("MenuPrincipal")
     var replacing_save: bool = game.has_save()
-    _press_button(current_scene, "Nueva partida")
+    _press_button(current_scene, "Comenzar un nuevo viaje")
     if replacing_save:
         _press_button(current_scene, "Iniciar nueva campaña")
     await process_frame
@@ -45,6 +45,7 @@ func _run() -> void:
     await process_frame
     _check_scene("MenuPrincipal")
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("Transicion")
@@ -72,6 +73,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("Lujuria")
@@ -119,6 +121,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("Gula")
@@ -144,6 +147,7 @@ func _run() -> void:
     await process_frame
     await process_frame
     _press_button(current_scene, "Continuar partida anterior")
+    _press_button(current_scene, "Continuar")
     await process_frame
     await process_frame
     _check_scene("FinGula")
@@ -212,14 +216,19 @@ func _run() -> void:
             await create_timer(0.9).timeout
             _check_scene("FinTraicion")
             _check(game.next_scene() == "res://scenes/FinTraicion.tscn", "Continuar partida no lleva al final de Traición")
-            _press_button(current_scene, "VOLVER AL MENÚ PRINCIPAL")
+            current_scene.story.finish()
+            _press_button(current_scene, "Ver resumen del viaje")
+            _press_button(current_scene, "Ver créditos")
+            current_scene.get_child(current_scene.get_child_count() - 1)._close()
             await process_frame
             await process_frame
             _check_scene("MenuPrincipal")
             _press_button(current_scene, "Continuar partida anterior")
+            _press_button(current_scene, "Continuar")
             await process_frame
             await process_frame
             _check_scene("FinTraicion")
+            _check(game.progress["relics"].is_empty(), "La campaña de prueba debe terminar sin reliquias")
     _finish()
 
 func _press_button(screen: Node, caption: String) -> void:
@@ -228,7 +237,7 @@ func _press_button(screen: Node, caption: String) -> void:
         return
     for node in screen.find_children("*", "Button", true, false):
         var button: Button = node as Button
-        if button.text == caption:
+        if button.text.trim_prefix("‹  ") == caption.to_upper():
             button.pressed.emit()
             return
     failures.append("Falta el botón: " + caption)

@@ -71,7 +71,7 @@ func _ready() -> void:
     var actions: HBoxContainer = HBoxContainer.new()
     actions.add_theme_constant_override("separation", 12)
     stack.add_child(actions)
-    var continue_button: Button = Button.new()
+    var continue_button: Button = preload("res://scripts/inferno_button.gd").new()
     continue_button.text = "CONTINUAR A GULA"
     continue_button.custom_minimum_size = Vector2(287, 52)
     continue_button.pressed.connect(func() -> void:
@@ -79,7 +79,7 @@ func _ready() -> void:
         Game.cross_threshold("res://scenes/Gula.tscn"))
     continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     actions.add_child(continue_button)
-    var menu: Button = Button.new()
+    var menu: Button = preload("res://scripts/inferno_button.gd").new()
     menu.text = "VOLVER AL MENÚ PRINCIPAL"
     menu.custom_minimum_size = Vector2(287, 52)
     menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))

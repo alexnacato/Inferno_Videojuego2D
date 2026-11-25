@@ -106,7 +106,11 @@ func _draw_traicion() -> void:
                 color = Color("#b9c2ff") if marker.completed else Color("#9298bb")
             _:
                 continue
-        draw_circle(_traicion_pos(marker.global_position), 3.0, color)
+        var spot := _traicion_pos(marker.global_position)
+        if marker.kind == "alma":
+            draw_string(ThemeDB.fallback_font, spot + Vector2(-3, 3), "J" if marker.uid == "alma_ugolino" else "H", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, color)
+        else:
+            draw_circle(spot, 3.0, color)
     var here := _traicion_pos(player.global_position)
     draw_circle(here, 5.0, Color("#b35c56"))
     draw_circle(here, 2.2, Color("#fff1e4"))

@@ -37,6 +37,7 @@ func _ready() -> void:
     body_radius = 31.0 if boss else 19.0
     anchor = position
     if boss:
+        AudioManager.foe_voice("minotauro", uid)
         var sprite := AnimatedSprite2D.new()
         var library := SpriteFrames.new()
         for facing in ["down", "up", "left", "right"]:
@@ -87,6 +88,8 @@ func _physics_process(delta: float) -> void:
     cooldown = maxf(0,cooldown-delta)
     timer = maxf(0,timer-delta)
     if dead:
+        if boss:
+            return
         art.modulate.a = maxf(0,art.modulate.a-delta*1.6)
         if art.modulate.a <= 0:
             queue_free()
@@ -179,7 +182,7 @@ func _boss_tick(delta: float) -> void:
                 preload("res://scripts/combat_fx.gd").burst(self, global_position, charge_direction, 65.0, Color("#ffbb76"))
                 timer = 1.25
                 world.play_sound("carga")
-                AudioManager.cue("jefe")
+                AudioManager.foe_voice("minotauro")
         "charge":
             var displacement := charge_direction * (740.0 if phase == 2 else 610.0) * delta
             # La carga no se desliza por paredes: chocar abre una ventana de daño.
@@ -209,7 +212,7 @@ func _boss_tick(delta: float) -> void:
                 state = "slam"
                 timer = 0.4
                 world.play_sound("choque")
-                AudioManager.cue("jefe")
+                AudioManager.foe_voice("minotauro")
         "slam":
             if timer <= 0:
                 state = "recover"
@@ -240,6 +243,8 @@ func take_damage(amount: int, _direction: Vector2 = Vector2.DOWN) -> void:
     if hp <= 0:
         AudioManager.cue("muerte")
         dead = true
+        if boss:
+            preload("res://scripts/boss_remains.gd").fall(self, art, "violencia")
         _animate("death_down" if boss else "death")
         died.emit(uid)
     elif not boss:

@@ -21,11 +21,15 @@ func _ready() -> void:
 func _process(delta: float) -> void:
     t += delta
     if is_instance_valid(art):
-        art.position.y = -74.0 + sin(t * 1.7) * 5.0
+        art.position.y = -74.0 if kind == "guide" else -74.0 + sin(t * 1.7) * 5.0
         art.modulate.a = 0.65 if completed else 1.0
     queue_redraw()
 
 func _draw() -> void:
+    if hovered:
+        preload("res://scripts/interaction_visual.gd").interaction_pin(self)
+    if kind == "guide":
+        VISUAL.shadow(self)
     if completed:
         VISUAL.seen(self)
     var pulse: float = sin(t * 2.1) * 0.5 + 0.5

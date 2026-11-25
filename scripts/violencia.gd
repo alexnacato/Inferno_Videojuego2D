@@ -156,7 +156,7 @@ func _nearest() -> Node2D:
     var distance := 91.0
     for marker in markers.values():
         var d: float = hero.position.distance_to(marker.position)
-        if d < distance:
+        if d < distance and (marker.kind not in ["soul", "guide"] or d <= 60.0):
             nearest = marker
             distance = d
     return nearest
@@ -245,13 +245,13 @@ func _hint() -> void:
     var message := ""
     if data["seals"].size() < 3:
         var next: String = SEAL_ORDER[data["seals"].size()]
-        message = "Enciende CONTENCIÓN al inicio del puente, MEMORIA junto al obelisco izquierdo y TREGUA junto al derecho, en ese orden. Ahora falta %s. E interactúa; J golpea; K lanza versos." % next.to_upper()
+        message = "Enciende CONTENCIÓN al inicio del puente, MEMORIA junto al obelisco izquierdo y TREGUA junto al derecho, en ese orden. Ahora falta %s." % next.to_upper()
     elif data["decisions"].size() < 2:
         message = "Escucha al guardia en el patio de entrada y al testigo en el bosque. Puedes elegir compasión o rigor: ambas decisiones permiten continuar."
     elif not data["boss_down"]:
         message = "Sube por las escaleras centrales. En la arena, apártate hacia un lado cuando comience la carga. Si el Minotauro choca con una columna o un muro queda aturdido y recibe el doble de daño. La piedra central es segura; la arena lateral arde por pulsos."
     else:
-        message = "El Minotauro ha caído. Tu esquiva ahora llega más lejos y te protege más tiempo. Acércate al arco del norte y pulsa E para terminar el capítulo. Fraude todavía no está desarrollado."
+        message = "El Minotauro ha caído. Tu esquiva ahora llega más lejos y te protege más tiempo. El arco del norte te llevará a Cocito."
     _dialogue("", "VIRGILIO · CONSEJO DEL GUÍA",message,["Continuar"])
 
 func _encounters() -> void:
@@ -328,7 +328,7 @@ func _apply_upgrade() -> void:
     var improved := bool(Game.progress.get("dash_extended",false)) or bool(data["boss_down"])
     hero.dash_duration = 0.25 if improved else 0.18
     hero.dash_invulnerability = 0.42 if improved else 0.28
-    hero.dash_cooldown_duration = 0.65 if improved else 0.85
+    hero.apply_relics()
 
 func melee_hit(origin: Vector2, direction: Vector2) -> void:
     for enemy in foes.get_children():
@@ -370,8 +370,10 @@ func has_clear_path(a: Vector2, b: Vector2) -> bool:
 func can_occupy_hero(p: Vector2, _dodging: bool = false) -> bool:
     if not can_walk(p, 10.0):
         return false
-    var guide: Node2D = markers["virgilio"]
-    return ((p - guide.position) / Vector2(19, 13)).length_squared() >= 1.0
+    for marker in markers.values():
+        if marker.kind in ["guide", "soul"] and preload("res://scripts/interaction_visual.gd").footprint(p, marker, 10.0):
+            return false
+    return true
 
 func move_on_ground(origin: Vector2, displacement: Vector2, radius: float) -> Vector2:
     return geometry.move_on_ground(origin,displacement,radius,boss_fighting)
@@ -398,7 +400,7 @@ func _health_changed(current: int, maximum: int) -> void:
 func _exhausted() -> void:
     game_active = false
     hero.control_enabled = false
-    _dialogue("death", "VIRGILIO · LEVÁNTATE, PEREGRINO", "Tu viaje no termina aquí. Volverás a la entrada con la salud completa. Tus decisiones y los votos encendidos permanecen. Si el Minotauro sigue en pie, su combate comenzará de nuevo.",["Volver a la entrada"])
+    _dialogue("death", "VIRGILIO", ("El Minotauro te ha derribado. Respira, Dante. Sus cargas lo dejan indefenso cuando choca." if boss_fighting else "La violencia de estos guardianes te ha hecho caer. Levántate, Dante. Ya conoces el ritmo de sus golpes.") + " Volverás a la entrada con los votos y las decisiones guardados.",["Volver a la entrada"])
 
 func _respawn() -> void:
     boss_fighting = false

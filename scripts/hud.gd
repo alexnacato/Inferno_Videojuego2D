@@ -21,7 +21,7 @@ var dialogue_frame: PanelContainer
 var dialogue_overlay: ColorRect
 var dialogue_portrait: TextureRect
 var dialogue_title: Label
-var dialogue_text: Label
+var dialogue_text: Variant
 var dialogue_choices: VBoxContainer
 var resume_button: Button
 var pause_overlay: ColorRect
@@ -73,7 +73,7 @@ func _panel(parent: Node, pos: Vector2, dimensions: Vector2, parchment: bool = f
     return p
 
 func _button(text_value: String) -> Button:
-    var b: Button = Button.new()
+    var b: Button = preload("res://scripts/inferno_button.gd").new()
     b.text = text_value
     b.custom_minimum_size = Vector2(205, 47)
     b.add_theme_font_size_override("font_size", 16)
@@ -92,6 +92,7 @@ func _progress() -> ProgressBar:
 
 var objectives: PanelContainer
 var objective_button: Button
+var relic_status: Label
 var player_panel: PanelContainer
 var player_toggle: Button
 var player_details: VBoxContainer
@@ -187,7 +188,8 @@ func _build_player() -> void:
     shrine_label = _label("", 14, Color("#26313a"))
     soul_label = _label("", 14, Color("#26313a"))
     gate_label = _label("", 13, Color("#48585f"))
-    for item in [shrine_label, soul_label, gate_label]:
+    relic_status = _label("", 13, Color("#795627"))
+    for item in [shrine_label, soul_label, gate_label, relic_status]:
         objectives_list.add_child(item)
 
 func _stat_row(label: String, bar: ProgressBar, tint: Color) -> Label:
@@ -253,9 +255,13 @@ func _build() -> void:
     _dock(title_frame, Control.PRESET_TOP_RIGHT, Vector2(-16, 16))
 
     var map_panel: PanelContainer = _panel(root, Vector2.ZERO, Vector2(151, 0))
+    map_panel.add_theme_stylebox_override("panel", _style(Color("#1f1b18"), Color("#b89052"), 5, 9))
     var map_v: VBoxContainer = VBoxContainer.new()
     map_v.add_theme_constant_override("separation", 0)
     map_panel.add_child(map_v)
+    var ornament := _label("◆ ───── ✦ ───── ◆", 11, Color("#d8b476"))
+    ornament.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+    map_v.add_child(ornament)
     map_title = _label("✧  PLANO DEL LIMBO", 11, Color("#e1e3e3"))
     map_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
     map_v.add_child(map_title)
@@ -359,7 +365,10 @@ func _build() -> void:
     dialogue_title = _label("VIRGILIO", 22, Color("#343a3f"))
     dbox.add_child(dialogue_title)
     dbox.add_child(HSeparator.new())
-    dialogue_text = _label("", 18, Color("#272b2b"))
+    dialogue_text = preload("res://scripts/ink_text.gd").new()
+    dialogue_text.add_theme_font_size_override("font_size", 18)
+    dialogue_text.add_theme_color_override("font_color", Color("#272b2b"))
+    dialogue_text.revealed.connect(_reveal_choices)
     dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     dialogue_text.custom_minimum_size.y = 55.0
     dbox.add_child(dialogue_text)
@@ -444,13 +453,16 @@ func show_dialogue(speaker: String, body: String, options: Array) -> void:
         dialogue_portrait.texture = _gula_portrait("daria")
     elif current_circle == "gula" and speaker.contains("OLMO"):
         dialogue_portrait.texture = _gula_portrait("olmo")
+    elif current_circle == "traicion" and (speaker.contains("JUDAS") or speaker.contains("HITLER")):
+        dialogue_portrait.texture = preload("res://scripts/traicion_marker.gd").portrait_for("alma_ugolino" if speaker.contains("JUDAS") else "alma_bocca")
     elif speaker.contains("VIRGILIO"):
         dialogue_portrait.texture = load("res://assets/ui/retrato_virgilio.png")
     elif speaker.contains("ALMA") or speaker.contains("PAOLO") or speaker.contains("FRANCESCA"):
         dialogue_portrait.texture = load("res://assets/ui/retrato_alma.png")
     else:
         dialogue_portrait.texture = load("res://assets/ui/retrato_piedra.png")
-    dialogue_text.text = body
+    dialogue_choices.hide()
+    dialogue_text.begin(body)
     for child in dialogue_choices.get_children():
         dialogue_choices.remove_child(child)
         child.queue_free()
@@ -461,13 +473,36 @@ func show_dialogue(speaker: String, body: String, options: Array) -> void:
     var index: int = 0
     for option in choices:
         var b: Button = _button(str(option))
-        b.custom_minimum_size.y = 44.0
+        b.custom_minimum_size = Vector2(0, 37.0)
+        b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+        b.text = _wrap_choice(b.text.to_upper())
         dialogue_choices.add_child(b)
         var captured_index: int = index
         b.pressed.connect(func() -> void: _select(captured_index))
-        if index == 0:
-            b.grab_focus()
         index += 1
+    if not dialogue_text.writing:
+        _reveal_choices()
+
+func _reveal_choices() -> void:
+    dialogue_choices.show()
+    if dialogue_choices.get_child_count() > 0:
+        dialogue_choices.get_child(0).grab_focus()
+
+func _wrap_choice(value: String) -> String:
+    var font := get_viewport().gui_get_focus_owner()
+    var face: Font = ThemeDB.fallback_font if font == null else font.get_theme_default_font()
+    var limit := minf(545.0, get_viewport().get_visible_rect().size.x * 0.43)
+    var lines := PackedStringArray()
+    var current := ""
+    for word in value.split(" ", false):
+        var next := word if current.is_empty() else current + " " + word
+        if not current.is_empty() and face.get_string_size(next, HORIZONTAL_ALIGNMENT_LEFT, -1, 17).x > limit:
+            lines.append(current)
+            current = word
+        else:
+            current = next
+    lines.append(current)
+    return "\\n".join(lines)
 
 func _character_portrait(character: String, region: Rect2) -> Texture2D:
     var source: Texture2D = load("res://assets/lujuria/npcs/" + character + "_statue.png")
@@ -486,6 +521,7 @@ func _select(index: int) -> void:
     if not dialogue_open:
         return
     dialogue_open = false
+    dialogue_text.writing = false
     dialogue_overlay.visible = false
     if toast_remaining > 0.0:
         toast_frame.visible = true
@@ -505,6 +541,10 @@ func _exit_tree() -> void:
         get_tree().paused = false
 
 func _input(event: InputEvent) -> void:
+    if dialogue_open and dialogue_text.writing and event.is_pressed() and ((event.is_action_pressed("ui_accept") and not (event is InputEventKey and event.keycode == KEY_SPACE)) or (event is InputEventKey and event.keycode in [KEY_1, KEY_2, KEY_KP_1, KEY_KP_2]) or (event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT)):
+        dialogue_text.finish()
+        get_viewport().set_input_as_handled()
+        return
     # Tab normally moves focus before _unhandled_key_input can receive it.
     if event is InputEventKey and not pause_open and not dialogue_open and not Game.crossing and event.keycode in [KEY_TAB, KEY_H]:
         if event.pressed and not event.echo:
@@ -546,6 +586,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 # Lujuria shares precisely the same parchment HUD, portraits and moral dialogue frame.
 func configure_chapter(circle: String, player_node: Node2D) -> void:
     current_circle = circle
+    update_relic_indicator()
+    preload("res://scripts/boss_remains.gd").restore(get_parent(), circle)
+    preload("res://scripts/chapter_relic.gd").install(get_parent(), circle, player_node, self)
     AudioManager.enter(circle)
     set_player(player_node)
     minimap.mode = circle
@@ -558,6 +601,9 @@ func configure_chapter(circle: String, player_node: Node2D) -> void:
     red_bar.max_value = 2.0 if circle == "limbo" else 9.0
     rig_bar.max_value = red_bar.max_value
     minimap.queue_redraw()
+
+func update_relic_indicator() -> void:
+    relic_status.text = "✦  Reliquia encontrada" if Game.has_relic(current_circle) else "◇  Reliquia opcional por descubrir"
 
 func set_health(current: int, maximum: int) -> void:
     heart_label.text = "♥".repeat(maxi(0, current)) + "♡".repeat(maxi(0, maximum - current)) if maximum <= 6 else "♥ %d/%d" % [current, maximum]
@@ -593,7 +639,7 @@ func set_traicion_state(data: Dictionary, seals_count: int, souls: int, boss_dow
     red_bar.value = int(data.get("redencion", 0))
     rig_bar.value = int(data.get("rigor", 0))
     shrine_label.text = "◆  Juramentos rotos: %d / 2" % seals_count
-    soul_label.text = "◆  Almas escuchadas: %d / 2" % souls
+    soul_label.text = "◆  Judas e Hitler: %d / 2" % souls
     gate_label.text = "✦  Lucifer vencido · salida abierta" if boss_down else "○  Lucifer guarda el centro"
     minimap.altar_step = seals_count
     minimap.soul_count = souls

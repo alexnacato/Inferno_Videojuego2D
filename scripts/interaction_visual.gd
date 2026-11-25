@@ -10,6 +10,19 @@ static func seen(marker: Node2D, offset: Vector2 = Vector2(19, -14)) -> void:
     marker.draw_circle(offset, 8.0, Color("#253631"))
     marker.draw_polyline(PackedVector2Array([offset + Vector2(-4, 0), offset + Vector2(-1, 3), offset + Vector2(4, -3)]), Color("#d0e9aa"), 2.0, true)
 
+static func interaction_pin(marker: Node2D) -> void:
+    var center := Vector2(0, -3)
+    var points := PackedVector2Array([center + Vector2(0,-6), center + Vector2(6,0), center + Vector2(0,6), center + Vector2(-6,0), center + Vector2(0,-6)])
+    marker.draw_polyline(points, Color("#ebc68b"), 2.0, true)
+
+static func footprint(point: Vector2, marker: Node2D, clearance: float = 0.0) -> bool:
+    return ((point - marker.global_position) / Vector2(14.0 + clearance, 10.0 + clearance)).length_squared() < 1.0
+
+static func shadow(marker: Node2D) -> void:
+    marker.draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.34))
+    marker.draw_circle(Vector2.ZERO, 23, Color(0.08, 0.055, 0.04, 0.50))
+    marker.draw_set_transform(Vector2.ZERO)
+
 static func guide_sprite(marker: Node2D) -> Sprite2D:
     var art := Sprite2D.new()
     art.texture = preload("res://scripts/sprite_library.gd").frame("res://assets/violencia/almas_virgilio.png", 1, 0, 2, 1, Vector2i(80, 128))

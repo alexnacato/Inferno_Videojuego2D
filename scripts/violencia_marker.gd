@@ -19,10 +19,14 @@ func _ready() -> void:
 func _process(delta: float) -> void:
     clock += delta
     if art != null:
-        art.position.y = -71 + sin(clock*1.6)*5
+        art.position.y = -73.0 if kind == "guide" else -71 + sin(clock*1.6)*5
         art.modulate.a = 0.68 if complete else 1.0
     queue_redraw()
 func _draw() -> void:
+    if near:
+        preload("res://scripts/interaction_visual.gd").interaction_pin(self)
+    if kind == "guide":
+        preload("res://scripts/interaction_visual.gd").shadow(self)
     if complete and kind in ["seal", "soul"]:
         preload("res://scripts/interaction_visual.gd").seen(self)
     var col := Color("bcb4a9") if complete else Color("d7958e")

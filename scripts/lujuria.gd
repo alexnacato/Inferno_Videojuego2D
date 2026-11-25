@@ -13,11 +13,11 @@ const SPAWNS := {
         {"id": "diablillo_entrada_2", "type": "diablillo", "pos": Vector2(814, 844)},
     ],
     "izquierda": [
-        {"id": "diablillo_izq", "type": "diablillo", "pos": Vector2(287, 495)},
+        {"id": "diablillo_izq", "type": "diablillo", "pos": Vector2(231, 492)},
         {"id": "espectro_izq", "type": "espectro", "pos": Vector2(478, 495)},
     ],
     "derecha": [
-        {"id": "carcelero_derecha", "type": "carcelero", "pos": Vector2(1153, 492)},
+        {"id": "carcelero_derecha", "type": "carcelero", "pos": Vector2(1215, 492)},
         {"id": "espectro_derecha", "type": "espectro", "pos": Vector2(985, 495)},
     ],
     "patio": [
@@ -127,8 +127,8 @@ func _play_fx() -> void:
 
 func _make_interactives() -> void:
     _add_marker("virgilio", "virgilio", "HABLAR CON VIRGILIO", Vector2(858, 877))
-    _add_marker("paolo", "paolo", "ESCUCHAR A PAOLO", Vector2(293, 575))
-    _add_marker("francesca", "francesca", "ESCUCHAR A FRANCESCA", Vector2(1153, 575))
+    _add_marker("paolo", "paolo", "ESCUCHAR A PAOLO", Vector2(293, 514))
+    _add_marker("francesca", "francesca", "ESCUCHAR A FRANCESCA", Vector2(1153, 514))
     _add_marker("sello_inicio", "sello", "SELLO DE LA MEMORIA", Vector2(722, 689))
     _add_marker("sello_izquierdo", "sello", "SELLO DEL ALIENTO", Vector2(387, 422))
     _add_marker("sello_derecho", "sello", "SELLO DEL JUICIO", Vector2(1052, 420))
@@ -215,7 +215,7 @@ func _nearest_interactive() -> Variant:
     var best: float = 95.0
     for marker in markers.get_children():
         var dist: float = hero.global_position.distance_to(marker.global_position)
-        if dist < best:
+        if dist < best and (marker.kind not in ["paolo", "francesca", "virgilio"] or dist <= 59.0):
             closest = marker
             best = dist
     return closest
@@ -260,6 +260,7 @@ func _activate_seal(marker: Variant) -> void:
         _toast("La presencia de demonios impide activar el sello.")
         return
     seals.append(uid)
+    hero.heal(1)
     marker.set_done(true)
     checkpoint = Vector2(720, 790) if seals.size() == 1 else Vector2(544, 390) if seals.size() == 3 else checkpoint
     _play_fx()
@@ -359,7 +360,7 @@ func _on_hero_exhausted() -> void:
     await get_tree().create_timer(1.2).timeout
     if not is_inside_tree():
         return
-    _open_dialogue("death", "VIRGILIO · LEVÁNTATE", "Dante regresará al inicio del círculo con su progreso guardado.", ["Volver al inicio"])
+    _open_dialogue("death", "VIRGILIO", ("Minos te ha derribado, Dante. Aguarda la pausa entre sus ráfagas y rodea al juez." if is_instance_valid(enemy_boss) and not enemy_boss.dead else "La tormenta te ha abatido, Dante. Busca refugio y observa el ritmo de los guardianes.") + " Volverás a la entrada con tus sellos y decisiones guardados.", ["Volver al inicio"])
 
 func _complete_level() -> void:
     game_active = false

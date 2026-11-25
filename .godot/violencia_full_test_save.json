@@ -10,6 +10,7 @@
   "checkpoint": false,
   "circle": "violencia",
   "dash_extended": true,
+  "ending": "",
   "gula_boss_defeated": false,
   "gula_boss_spawned": false,
   "gula_checkpoint_x": 724.0,
@@ -23,6 +24,7 @@
   "gula_triggered_waves": {},
   "intro_seen": false,
   "limbo_completed": false,
+  "limbo_transition_pending": false,
   "lujuria_boss_defeated": false,
   "lujuria_boss_spawned": false,
   "lujuria_checkpoint_x": 723.0,
@@ -38,7 +40,20 @@
   "pos_y": 843.0,
   "puzzle_errors": 0,
   "redencion": 1,
+  "relics": {},
+  "remains": {
+    "violencia": [
+      1152.01538085938,
+      493.327056884766
+    ]
+  },
   "rigor": 1,
+  "seen_foes": {
+    "violencia/guardian_contencion": true,
+    "violencia/guardian_memoria": true,
+    "violencia/guardian_tregua": true,
+    "violencia/minotauro": true
+  },
   "shrine_step": 0,
   "traicion_boss_defeated": false,
   "traicion_boss_spawned": false,
@@ -46,6 +61,7 @@
   "traicion_checkpoint_y": 1000.0,
   "traicion_completed": false,
   "traicion_decisions": {},
+  "traicion_defeated_enemies": [],
   "traicion_intro_seen": false,
   "traicion_seals": [],
   "traicion_started": false,
@@ -62,6 +78,7 @@
       "guardian_tregua"
     ],
     "intro": true,
+    "layout": 2,
     "seals": [
       "contencion",
       "memoria",
@@ -73,7 +90,7 @@
       "pilar_tregua"
     ],
     "x": 1152.0,
-    "y": 450.0
+    "y": 531.275268554688
   },
   "violencia_started": true
 }

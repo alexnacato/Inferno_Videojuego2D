@@ -28,14 +28,14 @@ func _ready() -> void:
     stack.add_child(story)
     stack.add_child(_label("Redención: %d     Rigor: %d" % [int(Game.progress["redencion"]), int(Game.progress["rigor"])], 20))
     stack.add_child(_label("El siguiente descenso lleva a Violencia; después aguarda Traición.", 17))
-    var next := Button.new()
+    var next := preload("res://scripts/inferno_button.gd").new()
     next.text = "CONTINUAR A VIOLENCIA · CÍRCULO VII"
     next.custom_minimum_size = Vector2(320, 50)
     next.pressed.connect(func() -> void:
         Game.enter_violencia()
         Game.cross_threshold("res://scenes/Violencia.tscn"))
     stack.add_child(next)
-    var menu := Button.new()
+    var menu := preload("res://scripts/inferno_button.gd").new()
     menu.text = "VOLVER AL MENÚ PRINCIPAL"
     menu.custom_minimum_size = Vector2(320, 50)
     menu.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/MenuPrincipal.tscn"))

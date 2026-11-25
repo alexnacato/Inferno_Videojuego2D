@@ -31,9 +31,14 @@ func _run() -> void:
     Input.action_press("verse")
     level.hero._physics_process(0.016)
     Input.action_release("verse")
+    _check(level.bullets.get_child_count() == 1, "El primer verso no comienza con un solo proyectil")
+    Input.action_press("verse")
+    level.hero._physics_process(0.45)
+    Input.action_release("verse")
     level.hero._physics_process(0.07)
-    level.hero._physics_process(0.07)
-    _check(level.bullets.get_child_count() == 3, "El verso no dispara una ráfaga de tres pulsos")
+    _check(level.bullets.get_child_count() == 3 and level.hero.verse_chain == 2, "El segundo verso no aumenta la ráfaga")
+    level.hero._physics_process(1.2)
+    _check(level.hero.verse_chain == 0, "La cadena de versos no se reinicia")
     for shot in level.bullets.get_children():
         shot.queue_free()
     await process_frame
@@ -134,6 +139,7 @@ func _run() -> void:
     _check(restored.seals.size() == 2 and restored.decided.size() == 2 and restored.boss_defeated,
         "La partida no restaura Traición")
     _check(not is_instance_valid(restored.boss), "Lucifer reaparece tras ser vencido")
+    _check(restored.has_node("RestosDelJefe"), "El cuerpo de Lucifer no permanece al continuar")
     _check(restored.foes.get_child_count() == 0 and restored.defeated_enemies.size() == 5, "Los guardianes reaparecen tras cargar")
     _check(restored.markers.get_node("Brasero").completed, "El brasero no persiste")
     restored.queue_free()

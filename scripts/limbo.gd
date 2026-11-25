@@ -3,13 +3,13 @@ extends Node2D
 const HUD_SCENE: PackedScene = preload("res://scenes/HUD.tscn")
 const HOTSPOT_SCRIPT: Script = preload("res://scripts/hotspot.gd")
 const POINTS = [
-    {"id":"virgilio", "name":"HABLAR CON VIRGILIO", "pos":Vector2(946, 958), "radius":112.0, "kind":"guide"},
+    {"id":"virgilio", "name":"HABLAR CON VIRGILIO", "pos":Vector2(946, 958), "radius":68.0, "kind":"guide"},
     {"id":"inscripcion", "name":"LEER INSCRIPCIÓN", "pos":Vector2(770, 850), "radius":77.0, "kind":"altar"},
     {"id":"altar_memoria", "name":"SANTUARIO DE LA MEMORIA", "pos":Vector2(282, 362), "radius":112.0, "kind":"altar"},
     {"id":"altar_saber", "name":"SANTUARIO DEL SABER", "pos":Vector2(1255, 362), "radius":112.0, "kind":"altar"},
     {"id":"altar_compasion", "name":"SANTUARIO DE LA COMPASIÓN", "pos":Vector2(770, 620), "radius":110.0, "kind":"altar"},
-    {"id":"alma_elio", "name":"ESCUCHAR A ELIO", "pos":Vector2(65, 750), "radius":115.0, "kind":"soul"},
-    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1093, 406), "radius":135.0, "kind":"soul"},
+    {"id":"alma_elio", "name":"ESCUCHAR A ELIO", "pos":Vector2(65, 750), "radius":62.0, "kind":"soul"},
+    {"id":"alma_livia", "name":"ESCUCHAR A LIVIA", "pos":Vector2(1093, 406), "radius":62.0, "kind":"soul"},
     {"id":"puerta", "name":"PUERTA DEL DESCENSO", "pos":Vector2(769, 236), "radius":96.0, "kind":"gate"}
 ]
 const ORDER = ["altar_memoria", "altar_saber", "altar_compasion"]
@@ -73,6 +73,9 @@ func _process(_delta: float) -> void:
             marker.set("hovered", str(key) == id)
 
 func can_walk(p: Vector2, radius: float = 10.0) -> bool:
+    for marker in markers.values():
+        if marker.kind in ["soul", "guide"] and preload("res://scripts/interaction_visual.gd").footprint(p, marker, radius):
+            return false
     for offset in COLLISION_SAMPLES:
         if not _is_path(p + offset * radius):
             return false
@@ -165,6 +168,7 @@ func _activate_shrine(id: String) -> void:
             _toast("Las marcas de la piedra se apagan: hay un orden que debes descubrir.", 5.0)
         return
     Game.progress["shrine_step"] = step + 1
+    player.dash_cooldown_left = 0.0
     _play_sound("santuario", -9.0)
     _save_at_position()
     _refresh()
